@@ -1,8 +1,9 @@
 package br.com.douglas444.minas.internal;
 
-import br.com.douglas444.common.Cluster;
-import br.com.douglas444.common.Point;
-import br.com.douglas444.kmeans.KMeansPlusPlus;
+import br.com.douglas444.mltk.Cluster;
+import br.com.douglas444.mltk.Point;
+import br.com.douglas444.mltk.kmeans.KMeansPlusPlus;
+
 import java.util.*;
 import java.util.stream.Collectors;
 

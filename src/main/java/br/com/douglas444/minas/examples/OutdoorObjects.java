@@ -1,10 +1,9 @@
 package br.com.douglas444.minas.examples;
 
-import br.com.douglas444.common.Point;
-import br.com.douglas444.datastream.DSFileReader;
-import br.com.douglas444.datastream.DSRunnable;
+import br.com.douglas444.dsframework.DSFileReader;
+import br.com.douglas444.dsframework.DSRunnable;
 import br.com.douglas444.minas.MINASController;
-
+import br.com.douglas444.mltk.Point;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
