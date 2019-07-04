@@ -10,7 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MovingSquares {
     public static void main(String[] args) {
@@ -28,16 +31,19 @@ public class MovingSquares {
 
         DSFileReader dsFileReader = new DSFileReader(" ", dataFile, labelFile);
         List<Point> trainSet = new ArrayList<>();
+        Set<Integer> knownLabels = new HashSet<>();
         for (int i = 0; i < 5000; ++i) {
             try {
-                trainSet.add(dsFileReader.next());
+                Point point = dsFileReader.next();
+                knownLabels.add((int) point.getY());
+                trainSet.add(point);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         try {
-            DSRunnable.run(new MINASController(trainSet), dsFileReader);
+            DSRunnable.run(new MINASController(trainSet, new ArrayList<>(knownLabels)), dsFileReader);
         } catch (IOException e) {
             e.printStackTrace();
         }

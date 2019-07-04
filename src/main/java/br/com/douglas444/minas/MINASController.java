@@ -11,8 +11,8 @@ public class MINASController implements DSClassifierController {
 
     private MINAS minas;
 
-    public MINASController(List<Point> trainSet) {
-        this.minas = new MINAS(trainSet);
+    public MINASController(List<Point> trainSet, List<Integer> knownLabels) {
+        this.minas = new MINAS(trainSet, knownLabels);
     }
 
     @Override
@@ -24,8 +24,9 @@ public class MINASController implements DSClassifierController {
     }
 
     @Override
-    public double getAccuracy() {
-        return minas.calculatesAccuracy();
+    public String getLog() {
+        return minas.getConfusionMatrix().toString();
     }
+
 
 }
