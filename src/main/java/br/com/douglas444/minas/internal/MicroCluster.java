@@ -8,7 +8,7 @@ import java.util.List;
 public class MicroCluster {
 
     private int timestamp;
-    double label;
+    int label;
     private Category category;
     private int n;
     private double[] ls;
@@ -83,11 +83,11 @@ public class MicroCluster {
         this.timestamp = timestamp;
     }
 
-    public double getLabel() {
+    public int getLabel() {
         return label;
     }
 
-    public void setLabel(double label) {
+    public void setLabel(int label) {
         this.label = label;
     }
 

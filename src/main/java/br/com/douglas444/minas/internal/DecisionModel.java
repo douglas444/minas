@@ -22,21 +22,6 @@ public class DecisionModel {
         this.microClusters = microClusters;
     }
 
-    public Optional<Double> predict(Point point) {
-
-        Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(point);
-
-        if (closestMicroCluster.isPresent() &&
-                closestMicroCluster.get().calculateCenter().distance(point) < Hyperparameter.T) {
-
-            return Optional.of(closestMicroCluster.get().getLabel());
-
-        } else {
-            return Optional.empty();
-        }
-
-    }
-
     public Optional<MicroCluster> predictAndUpdate(Point point) {
 
         Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(point);
@@ -45,7 +30,7 @@ public class DecisionModel {
                 closestMicroCluster.get().calculateCenter().distance(point) < Hyperparameter.T) {
 
             closestMicroCluster.get().update(point);
-            return Optional.of(closestMicroCluster.get());
+            return closestMicroCluster;
 
         } else {
             return Optional.empty();
@@ -118,10 +103,6 @@ public class DecisionModel {
 
         return (b - a) / Math.max(b, a);
 
-
-    }
-
-    public void update(Point point, double label) {
 
     }
 

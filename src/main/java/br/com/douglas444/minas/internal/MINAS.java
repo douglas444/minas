@@ -16,16 +16,13 @@ public class MINAS {
     private int nextNoveltyLabel;
     private int timestamp;
 
-    private DynamicConfusionMatrix confusionMatrix;
-
-    public MINAS(List<Point> trainSet, List<Integer> knownLabels) {
+    public MINAS(List<Point> trainSet) {
 
         this.timestamp = 0;
         this.decisionModel = buildDecisionModel(trainSet);
         this.temporaryMemory = new ArrayList<>();
         this.sleepMemory = new DecisionModel();
         this.nextNoveltyLabel = 0;
-        this.confusionMatrix = new DynamicConfusionMatrix(knownLabels);
 
     }
 
@@ -33,7 +30,7 @@ public class MINAS {
     private static DecisionModel buildDecisionModel(List<Point> trainSet) {
 
         List<MicroCluster> microClusters = new ArrayList<>();
-        HashMap<Double, List<Point>> pointsByLabel = new HashMap<>();
+        HashMap<Integer, List<Point>> pointsByLabel = new HashMap<>();
 
         trainSet.forEach(point -> {
             pointsByLabel.putIfAbsent(point.getY(), new ArrayList<>());
@@ -52,10 +49,9 @@ public class MINAS {
         return new DecisionModel(microClusters);
     }
 
-    private List<MicroCluster> noveltyDetection(List<Point> temporaryMemory) {
+    private List<MicroCluster> noveltyDetection() {
 
         List<MicroCluster> microClusters = new ArrayList<>();
-        HashMap<MicroCluster, List<Point>> pointsByMicroCluster = new HashMap<>();
 
         //Generates clusters
         KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(temporaryMemory, Hyperparameter.K);
@@ -70,7 +66,6 @@ public class MINAS {
                 temporaryMemory.removeAll(cluster.getPoints());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
-                pointsByMicroCluster.put(microCluster, cluster.getPoints());
             }
 
         }
@@ -93,18 +88,6 @@ public class MINAS {
                 microCluster.setLabel(extended.get().getLabel());
 
 
-                if (microCluster.getCategory().equals(Category.KNOWN_EXTENSION) || microCluster.getCategory().equals(Category.KNOWN)) {
-                    pointsByMicroCluster
-                            .get(microCluster)
-                            .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                    (int) microCluster.getLabel(), false));
-                } else {
-                    pointsByMicroCluster
-                            .get(microCluster)
-                            .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                    (int) microCluster.getLabel(), true));
-                }
-
             } else {
 
                 extended = this.sleepMemory.predict(microCluster);
@@ -122,36 +105,12 @@ public class MINAS {
                     awakenedMicroClusters.add(extended.get());
 
 
-                    if (microCluster.getCategory().equals(Category.KNOWN_EXTENSION) || microCluster.getCategory().equals(Category.KNOWN)) {
-                        pointsByMicroCluster
-                                .get(microCluster)
-                                .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                        (int) microCluster.getLabel(), false));
-                    } else {
-                        pointsByMicroCluster
-                                .get(microCluster)
-                                .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                        (int) microCluster.getLabel(), true));
-                    }
-
                 } else {
 
                     //Novelty
                     microCluster.setCategory(Category.NOVELTY);
                     microCluster.setLabel(this.nextNoveltyLabel);
                     ++this.nextNoveltyLabel;
-
-                    if (microCluster.getCategory().equals(Category.KNOWN_EXTENSION) || microCluster.getCategory().equals(Category.KNOWN)) {
-                        pointsByMicroCluster
-                                .get(microCluster)
-                                .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                        (int) microCluster.getLabel(), false));
-                    } else {
-                        pointsByMicroCluster
-                                .get(microCluster)
-                                .forEach(point -> confusionMatrix.add((int) point.getY(),
-                                        (int) microCluster.getLabel(), true));
-                    }
 
                 }
             }
@@ -172,18 +131,10 @@ public class MINAS {
             temporaryMemory.add(point);
 
             if (temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
-                List<MicroCluster> microClusters = noveltyDetection(temporaryMemory);
+                List<MicroCluster> microClusters = noveltyDetection();
                 decisionModel.merge(microClusters);
             }
 
-        } else {
-            if (microCluster.get().getCategory().equals(Category.KNOWN_EXTENSION) || microCluster.get().getCategory().equals(Category.KNOWN)) {
-
-                confusionMatrix.add((int) point.getY(), (int) microCluster.get().label, false);
-            } else {
-
-                confusionMatrix.add((int) point.getY(), (int) microCluster.get().label, true);
-            }
         }
 
         ++timestamp;
@@ -196,12 +147,4 @@ public class MINAS {
 
     }
 
-
-    public DynamicConfusionMatrix getConfusionMatrix() {
-        return confusionMatrix;
-    }
-
-    public void setConfusionMatrix(DynamicConfusionMatrix confusionMatrix) {
-        this.confusionMatrix = confusionMatrix;
-    }
 }

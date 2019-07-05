@@ -11,12 +11,12 @@ public class MINASController implements DSClassifierController {
 
     private MINAS minas;
 
-    public MINASController(List<Point> trainSet, List<Integer> knownLabels) {
-        this.minas = new MINAS(trainSet, knownLabels);
+    public MINASController(List<Point> trainSet) {
+        this.minas = new MINAS(trainSet);
     }
 
     @Override
-    public Optional<Double> predictAndUpdate(Point point) {
+    public Optional<Integer> predictAndUpdate(Point point) {
 
         Optional<MicroCluster> microCluster = minas.predictAndUpdate(point);
         return microCluster.map(MicroCluster::getLabel);
@@ -25,7 +25,7 @@ public class MINASController implements DSClassifierController {
 
     @Override
     public String getLog() {
-        return minas.getConfusionMatrix().toString();
+        return "";
     }
 
 

@@ -31,19 +31,10 @@ public class MovingSquares {
 
         DSFileReader dsFileReader = new DSFileReader(" ", dataFile, labelFile);
         List<Point> trainSet = new ArrayList<>();
-        Set<Integer> knownLabels = new HashSet<>();
-        for (int i = 0; i < 5000; ++i) {
-            try {
-                Point point = dsFileReader.next();
-                knownLabels.add((int) point.getY());
-                trainSet.add(point);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
 
         try {
-            DSRunnable.run(new MINASController(trainSet, new ArrayList<>(knownLabels)), dsFileReader);
+            DSRunnable.run(new MINASController(trainSet), dsFileReader);
         } catch (IOException e) {
             e.printStackTrace();
         }
