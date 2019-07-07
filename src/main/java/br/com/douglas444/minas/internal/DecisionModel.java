@@ -10,51 +10,68 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DecisionModel {
+class DecisionModel {
 
     private List<MicroCluster> microClusters;
 
-    public DecisionModel() {
+    DecisionModel() {
         this.microClusters = new ArrayList<>();
     }
 
-    public DecisionModel(List<MicroCluster> microClusters) {
-        this.microClusters = microClusters;
+    DecisionModel(List<MicroCluster> microClusters) {
+        this.microClusters = new ArrayList<>(microClusters);
     }
 
-    public Optional<MicroCluster> predictAndUpdate(Point point) {
+    private Optional<MicroCluster> predict(Point point) {
 
         Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(point);
-
-        if (closestMicroCluster.isPresent() &&
-                closestMicroCluster.get().calculateCenter().distance(point) < Hyperparameter.T) {
-
-            closestMicroCluster.get().update(point);
+        if (!closestMicroCluster.isPresent()) {
             return closestMicroCluster;
+        }
 
-        } else {
+        Point center = closestMicroCluster.get().calculateCenter();
+        double distance = center.distance(point);
+        double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
+
+        if (distance > microClusterStandardDeviation * Hyperparameter.THRESHOLD_MULTIPLIER) {
             return Optional.empty();
         }
 
+        return closestMicroCluster;
+
     }
 
-    public Optional<MicroCluster> predict(MicroCluster microCluster) {
+    Optional<MicroCluster> predict(MicroCluster microCluster) {
 
         Point center = microCluster.calculateCenter();
         Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(center);
 
-
-        if (closestMicroCluster.isPresent() &&
-                closestMicroCluster.get().calculateCenter().distance(center) < Hyperparameter.T) {
-
+        if (!closestMicroCluster.isPresent()) {
             return closestMicroCluster;
-        } else {
+        }
+
+        double distance = closestMicroCluster.get().calculateCenter().distance(center);
+        double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
+
+        if (distance > microClusterStandardDeviation * Hyperparameter.THRESHOLD_MULTIPLIER) {
             return Optional.empty();
         }
 
+        return closestMicroCluster;
+
     }
 
-    public Optional<MicroCluster> calculateClosestMicroCluster(Point point) {
+    Optional<MicroCluster> predictAndUpdate(Point point) {
+
+        Optional<MicroCluster> closestMicroCluster = predict(point);
+        closestMicroCluster.ifPresent(microCluster -> microCluster.update(point));
+        return closestMicroCluster;
+
+    }
+
+
+
+    private Optional<MicroCluster> calculateClosestMicroCluster(Point point) {
 
 
         HashMap<Point, MicroCluster> microClusterByCenter = new HashMap<>();
@@ -78,7 +95,7 @@ public class DecisionModel {
         }
     }
 
-    public double calculateSilhouette(Cluster cluster) {
+    double calculateSilhouette(Cluster cluster) {
 
         Point center = cluster.calculateCenter();
 
@@ -88,7 +105,6 @@ public class DecisionModel {
                 .map(MicroCluster::calculateCenter)
                 .sorted(new DistanceComparator(center))
                 .collect(Collectors.toList());
-
 
         double a = cluster.calculateStandardDeviation();
 
@@ -106,11 +122,15 @@ public class DecisionModel {
 
     }
 
-    public void merge(List<MicroCluster> microClusters) {
+    void merge(List<MicroCluster> microClusters) {
         this.microClusters.addAll(microClusters);
     }
 
-    public List<MicroCluster> extractInactiveMicroClusters(int timestamp) {
+    void remove(MicroCluster microCluster) {
+        this.microClusters.remove(microCluster);
+    }
+
+    List<MicroCluster> extractInactiveMicroClusters(int timestamp) {
 
         List<MicroCluster> inactiveMicroClusters = this
                 .microClusters

@@ -4,17 +4,19 @@ import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.Point;
 import br.com.douglas444.mltk.kmeans.KMeansPlusPlus;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MINAS {
 
-    private DecisionModel decisionModel;
-    private DecisionModel sleepMemory;
-    private List<Point> temporaryMemory;
-    private int nextNoveltyLabel;
     private int timestamp;
+    private DecisionModel decisionModel;
+    private List<Point> temporaryMemory;
+    private DecisionModel sleepMemory;
+    private int noveltyCount;
+    private int unexplainedSamplesCount;
+    private DynamicConfusionMatrix confusionMatrix;
+
 
     public MINAS(List<Point> trainSet) {
 
@@ -22,11 +24,17 @@ public class MINAS {
         this.decisionModel = buildDecisionModel(trainSet);
         this.temporaryMemory = new ArrayList<>();
         this.sleepMemory = new DecisionModel();
-        this.nextNoveltyLabel = 0;
+
+        this.noveltyCount = 0;
+        this.unexplainedSamplesCount = 0;
+
+        Set<Integer> knownLabels = new HashSet<>();
+        trainSet.forEach(point -> knownLabels.add(point.getY()));
+        this.confusionMatrix = new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
 
     }
 
-    //Offline Phase
+
     private static DecisionModel buildDecisionModel(List<Point> trainSet) {
 
         List<MicroCluster> microClusters = new ArrayList<>();
@@ -40,8 +48,11 @@ public class MINAS {
         pointsByLabel.forEach((key, value) -> {
             KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(value, Hyperparameter.K);
             List<Cluster> clusters = kMeansPlusPlus.fit();
-            microClusters.addAll(clusters.stream().map(MicroCluster::new).collect(Collectors.toList()));
-            microClusters.forEach(microCluster -> microCluster.setLabel(key));
+            microClusters.addAll(
+                    clusters
+                            .stream()
+                            .map(cluster -> new MicroCluster(cluster, key))
+                            .collect(Collectors.toList()));
         });
 
         microClusters.forEach(microCluster -> microCluster.setCategory(Category.KNOWN));
@@ -49,102 +60,100 @@ public class MINAS {
         return new DecisionModel(microClusters);
     }
 
-    private List<MicroCluster> noveltyDetection() {
 
+    private void detectNoveltyAndUpdate() {
+
+        KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(this.temporaryMemory, Hyperparameter.K);
+        List<Cluster> clusters = kMeansPlusPlus.fit();
         List<MicroCluster> microClusters = new ArrayList<>();
 
-        //Generates clusters
-        KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(temporaryMemory, Hyperparameter.K);
-        List<Cluster> clusters = kMeansPlusPlus.fit();
-
-        //Selects valid clusters and remove their points from the temporary memory
         for (Cluster cluster : clusters) {
-
-            if (this.decisionModel.calculateSilhouette(cluster) > 0 &&
-                    cluster.getPoints().size() > Hyperparameter.MICRO_CLUSTER_MIN_SIZE) {
-
-                temporaryMemory.removeAll(cluster.getPoints());
+            double silhouette = this.decisionModel.calculateSilhouette(cluster);
+            if (silhouette > 0 && cluster.getSize() > Hyperparameter.MICRO_CLUSTER_MIN_SIZE) {
+                this.temporaryMemory.removeAll(cluster.getPoints());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
             }
-
         }
 
         List<MicroCluster> awakenedMicroClusters = new ArrayList<>();
 
-        //For each micro cluster, checks if it is a extension or a novelty
         microClusters.forEach(microCluster -> {
 
-            Optional<MicroCluster> extended = this.decisionModel.predict(microCluster);
-            if (extended.isPresent()) {
+            Optional<MicroCluster> extended;
+            if ((extended = this.decisionModel.predict(microCluster)).isPresent()) {
 
-                //Extension in decision model
-                if (extended.get().getCategory() == Category.NOVELTY ||
-                        extended.get().getCategory() == Category.NOVELTY_EXTENSION) {
-                    microCluster.setCategory(Category.NOVELTY_EXTENSION);
-                } else {
-                    microCluster.setCategory(Category.KNOWN_EXTENSION);
-                }
+                microCluster.setCategory(extended.get().getCategory());
                 microCluster.setLabel(extended.get().getLabel());
 
+            } else if ((extended = this.sleepMemory.predict(microCluster)).isPresent()) {
+
+                microCluster.setCategory(extended.get().getCategory());
+                microCluster.setLabel(extended.get().getLabel());
+                awakenedMicroClusters.add(extended.get());
+                this.sleepMemory.remove(extended.get());
 
             } else {
 
-                extended = this.sleepMemory.predict(microCluster);
+                microCluster.setCategory(Category.NOVELTY);
+                microCluster.setLabel(this.noveltyCount);
+                ++this.noveltyCount;
 
-                if (extended.isPresent()) {
-
-                    //Extension in sleep memory
-                    if (extended.get().getCategory() == Category.NOVELTY ||
-                            extended.get().getCategory() == Category.NOVELTY_EXTENSION) {
-                        microCluster.setCategory(Category.NOVELTY_EXTENSION);
-                    } else {
-                        microCluster.setCategory(Category.KNOWN_EXTENSION);
-                    }
-                    microCluster.setLabel(extended.get().getLabel());
-                    awakenedMicroClusters.add(extended.get());
-
-
-                } else {
-
-                    //Novelty
-                    microCluster.setCategory(Category.NOVELTY);
-                    microCluster.setLabel(this.nextNoveltyLabel);
-                    ++this.nextNoveltyLabel;
-
-                }
             }
 
         });
 
-        microClusters.addAll(awakenedMicroClusters);
-        return microClusters;
+        this.decisionModel.merge(microClusters);
+        this.decisionModel.merge(awakenedMicroClusters);
     }
 
-    //Online Phase
+
     public Optional<MicroCluster> predictAndUpdate(Point point) {
 
-        Optional<MicroCluster> microCluster = decisionModel.predictAndUpdate(point);
+        Optional<MicroCluster> microCluster = this.decisionModel.predictAndUpdate(point);
 
         if (!microCluster.isPresent()) {
-
-            temporaryMemory.add(point);
-
-            if (temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
-                List<MicroCluster> microClusters = noveltyDetection();
-                decisionModel.merge(microClusters);
+            ++this.unexplainedSamplesCount;
+            this.temporaryMemory.add(point);
+            if (this.temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
+                detectNoveltyAndUpdate();
             }
-
+        } else {
+            this.confusionMatrix.add(point.getY(), microCluster.get().getLabel(),
+                    microCluster.get().getCategory() == Category.NOVELTY);
         }
 
-        ++timestamp;
-        if (timestamp % Hyperparameter.WINDOW_MAX_SIZE == 0) {
-            sleepMemory.merge(decisionModel.extractInactiveMicroClusters(timestamp));
-            temporaryMemory.removeIf(p -> (timestamp - p.getT()) > Hyperparameter.TS);
+        ++this.timestamp;
+        if (this.timestamp % Hyperparameter.WINDOW_MAX_SIZE == 0) {
+            this.sleepMemory.merge(this.decisionModel.extractInactiveMicroClusters(this.timestamp));
+            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > Hyperparameter.TS);
         }
 
         return microCluster;
 
     }
 
+    public int getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(int timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public DynamicConfusionMatrix getConfusionMatrix() {
+        return confusionMatrix;
+    }
+
+    public void setConfusionMatrix(DynamicConfusionMatrix confusionMatrix) {
+        this.confusionMatrix = confusionMatrix;
+    }
+
+    public int getUnexplainedSamplesCount() {
+        return unexplainedSamplesCount;
+    }
+
+    public void setUnexplainedSamplesCount(int unexplainedSamplesCount) {
+        this.unexplainedSamplesCount = unexplainedSamplesCount;
+    }
 }

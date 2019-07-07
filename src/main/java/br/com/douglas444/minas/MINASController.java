@@ -25,7 +25,10 @@ public class MINASController implements DSClassifierController {
 
     @Override
     public String getLog() {
-        return "";
+        return " Timestamp: " + minas.getTimestamp() +
+                " Unexplained Samples (%): " + (double) minas.getUnexplainedSamplesCount() / minas.getTimestamp() +
+                "\n\n" +
+                minas.getConfusionMatrix().toString();
     }
 
 
