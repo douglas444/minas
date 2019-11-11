@@ -2,7 +2,7 @@ package br.com.douglas444.minas.internal;
 
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DistanceComparator;
-import br.com.douglas444.mltk.Point;
+import br.com.douglas444.mltk.Sample;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,15 +22,15 @@ class DecisionModel {
         this.microClusters = new ArrayList<>(microClusters);
     }
 
-    private Optional<MicroCluster> predict(Point point) {
+    private Optional<MicroCluster> predict(Sample sample) {
 
-        Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(point);
+        Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(sample);
         if (!closestMicroCluster.isPresent()) {
             return closestMicroCluster;
         }
 
-        Point center = closestMicroCluster.get().calculateCenter();
-        double distance = center.distance(point);
+        Sample center = closestMicroCluster.get().calculateCenter();
+        double distance = center.distance(sample);
         double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
         if (distance > microClusterStandardDeviation * Hyperparameter.THRESHOLD_MULTIPLIER) {
@@ -43,7 +43,7 @@ class DecisionModel {
 
     Optional<MicroCluster> predict(MicroCluster microCluster) {
 
-        Point center = microCluster.calculateCenter();
+        Sample center = microCluster.calculateCenter();
         Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(center);
 
         if (!closestMicroCluster.isPresent()) {
@@ -61,34 +61,34 @@ class DecisionModel {
 
     }
 
-    Optional<MicroCluster> predictAndUpdate(Point point) {
+    Optional<MicroCluster> predictAndUpdate(Sample sample) {
 
-        Optional<MicroCluster> closestMicroCluster = predict(point);
-        closestMicroCluster.ifPresent(microCluster -> microCluster.update(point));
+        Optional<MicroCluster> closestMicroCluster = predict(sample);
+        closestMicroCluster.ifPresent(microCluster -> microCluster.update(sample));
         return closestMicroCluster;
 
     }
 
 
 
-    private Optional<MicroCluster> calculateClosestMicroCluster(Point point) {
+    private Optional<MicroCluster> calculateClosestMicroCluster(Sample sample) {
 
 
-        HashMap<Point, MicroCluster> microClusterByCenter = new HashMap<>();
+        HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
 
-        List<Point> decisionModelCenters = this
+        List<Sample> decisionModelCenters = this
                 .microClusters
                 .stream()
                 .map(microCluster -> {
-                    Point center = microCluster.calculateCenter();
+                    Sample center = microCluster.calculateCenter();
                     microClusterByCenter.put(center, microCluster);
                     return center;
                 })
-                .sorted(new DistanceComparator(point))
+                .sorted(new DistanceComparator(sample))
                 .collect(Collectors.toList());
 
         if (decisionModelCenters.size() > 0) {
-            Point closestCenter = decisionModelCenters.get(0);
+            Sample closestCenter = decisionModelCenters.get(0);
             return Optional.of(microClusterByCenter.get(closestCenter));
         } else {
             return Optional.empty();
@@ -97,9 +97,9 @@ class DecisionModel {
 
     double calculateSilhouette(Cluster cluster) {
 
-        Point center = cluster.calculateCenter();
+        Sample center = cluster.calculateCenter();
 
-        List<Point> decisionModelCenters = this
+        List<Sample> decisionModelCenters = this
                 .microClusters
                 .stream()
                 .map(MicroCluster::calculateCenter)
@@ -110,7 +110,7 @@ class DecisionModel {
 
         double b;
         if (decisionModelCenters.size() > 0) {
-            Point closestCenter = decisionModelCenters.get(0);
+            Sample closestCenter = decisionModelCenters.get(0);
             b = center.distance(closestCenter);
         } else {
             b = Double.MAX_VALUE;

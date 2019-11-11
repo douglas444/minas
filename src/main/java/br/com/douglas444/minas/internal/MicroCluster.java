@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.internal;
 
 import br.com.douglas444.mltk.Cluster;
-import br.com.douglas444.mltk.Point;
+import br.com.douglas444.mltk.Sample;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,14 +18,14 @@ public class MicroCluster {
 
     MicroCluster(Cluster cluster) {
 
-        int dimensions = cluster.getPoints().get(0).getX().length;
-        List<Point> points = cluster.getPoints();
+        int dimensions = cluster.getSamples().get(0).getX().length;
+        List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
         this.ss = new double[dimensions];
 
-        points.forEach(this::update);
+        samples.forEach(this::update);
     }
 
 
@@ -33,46 +33,46 @@ public class MicroCluster {
 
         this.label = label;
 
-        int dimensions = cluster.getPoints().get(0).getX().length;
-        List<Point> points = cluster.getPoints();
+        int dimensions = cluster.getSamples().get(0).getX().length;
+        List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
         this.ss = new double[dimensions];
 
-        points.forEach(this::update);
+        samples.forEach(this::update);
     }
 
-    MicroCluster(int dimensions, List<Point> points) {
+    MicroCluster(int dimensions, List<Sample> samples) {
 
         this.n = 0;
         this.ls = new double[dimensions];
         this.ss = new double[dimensions];
 
-        points.forEach(this::update);
+        samples.forEach(this::update);
 
     }
 
-    void update(Point point) {
-        for (int i = 0; i < point.getX().length; ++i) {
-            this.timestamp = point.getT();
-            this.ls[i] += point.getX()[i];
-            this.ss[i] += point.getX()[i] * point.getX()[i];
+    void update(Sample sample) {
+        for (int i = 0; i < sample.getX().length; ++i) {
+            this.timestamp = sample.getT();
+            this.ls[i] += sample.getX()[i];
+            this.ss[i] += sample.getX()[i] * sample.getX()[i];
         }
         ++this.n;
     }
 
-    Point calculateCenter() {
+    Sample calculateCenter() {
         double[] x = this.ls.clone();
         for (int i = 0; i < x.length; ++i) {
             x[i] /= this.n;
         }
-        return new Point(x, this.label);
+        return new Sample(x, this.label);
     }
 
     double calculateStandardDeviation() {
 
-        Point center = this.calculateCenter();
+        Sample center = this.calculateCenter();
 
         double sum = 0;
 

@@ -2,7 +2,7 @@ package br.com.douglas444.minas.internal;
 
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
-import br.com.douglas444.mltk.Point;
+import br.com.douglas444.mltk.Sample;
 import br.com.douglas444.mltk.kmeans.KMeansPlusPlus;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -11,14 +11,14 @@ public class MINAS {
 
     private int timestamp;
     private DecisionModel decisionModel;
-    private List<Point> temporaryMemory;
+    private List<Sample> temporaryMemory;
     private DecisionModel sleepMemory;
     private int noveltyCount;
     private int unexplainedSamplesCount;
     private DynamicConfusionMatrix confusionMatrix;
 
 
-    public MINAS(List<Point> trainSet) {
+    public MINAS(List<Sample> trainSet) {
 
         this.timestamp = 0;
         this.decisionModel = buildDecisionModel(trainSet);
@@ -29,23 +29,23 @@ public class MINAS {
         this.unexplainedSamplesCount = 0;
 
         Set<Integer> knownLabels = new HashSet<>();
-        trainSet.forEach(point -> knownLabels.add(point.getY()));
+        trainSet.forEach(sample -> knownLabels.add(sample.getY()));
         this.confusionMatrix = new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
 
     }
 
 
-    private static DecisionModel buildDecisionModel(List<Point> trainSet) {
+    private static DecisionModel buildDecisionModel(List<Sample> trainSet) {
 
         List<MicroCluster> microClusters = new ArrayList<>();
-        HashMap<Integer, List<Point>> pointsByLabel = new HashMap<>();
+        HashMap<Integer, List<Sample>> samplesByLabel = new HashMap<>();
 
-        trainSet.forEach(point -> {
-            pointsByLabel.putIfAbsent(point.getY(), new ArrayList<>());
-            pointsByLabel.get(point.getY()).add(point);
+        trainSet.forEach(sample -> {
+            samplesByLabel.putIfAbsent(sample.getY(), new ArrayList<>());
+            samplesByLabel.get(sample.getY()).add(sample);
         });
 
-        pointsByLabel.forEach((key, value) -> {
+        samplesByLabel.forEach((key, value) -> {
             KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(value, Hyperparameter.K);
             List<Cluster> clusters = kMeansPlusPlus.fit();
             microClusters.addAll(
@@ -70,7 +70,7 @@ public class MINAS {
         for (Cluster cluster : clusters) {
             double silhouette = this.decisionModel.calculateSilhouette(cluster);
             if (silhouette > 0 && cluster.getSize() > Hyperparameter.MICRO_CLUSTER_MIN_SIZE) {
-                this.temporaryMemory.removeAll(cluster.getPoints());
+                this.temporaryMemory.removeAll(cluster.getSamples());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
             }
@@ -108,19 +108,18 @@ public class MINAS {
     }
 
 
-    public Optional<MicroCluster> predictAndUpdate(Point point) {
+    public Optional<MicroCluster> predictAndUpdate(Sample sample) {
 
-        Optional<MicroCluster> microCluster = this.decisionModel.predictAndUpdate(point);
+        Optional<MicroCluster> microCluster = this.decisionModel.predictAndUpdate(sample);
 
         if (!microCluster.isPresent()) {
             ++this.unexplainedSamplesCount;
-            this.temporaryMemory.add(point);
+            this.temporaryMemory.add(sample);
             if (this.temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
                 detectNoveltyAndUpdate();
             }
         } else {
-            this.confusionMatrix.add(point.getY(), microCluster.get().getLabel(),
-                    microCluster.get().getCategory() == Category.NOVELTY);
+            this.confusionMatrix.addPrediction(sample.getY(), microCluster.get().getLabel());
         }
 
         ++this.timestamp;
