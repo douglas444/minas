@@ -72,15 +72,13 @@ public class MicroCluster {
 
     double calculateStandardDeviation() {
 
-        Sample center = this.calculateCenter();
-
         double sum = 0;
 
         for (int i = 0; i < this.ss.length; ++i) {
-            sum += this.ss[i] - (2 * this.ls[i] * center.getX()[i]) + (center.getX()[i] * center.getX()[i]);
+            sum += Math.sqrt(this.ss[i]/this.n - (this.ls[i]/this.n * this.ls[i]/this.n));
         }
 
-        return Math.sqrt(sum / n);
+        return sum;
 
     }
 

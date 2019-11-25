@@ -33,7 +33,7 @@ class DecisionModel {
         double distance = center.distance(sample);
         double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
-        if (distance > microClusterStandardDeviation * Hyperparameter.THRESHOLD_MULTIPLIER) {
+        if (distance >= microClusterStandardDeviation) {
             return Optional.empty();
         }
 
@@ -68,8 +68,6 @@ class DecisionModel {
         return closestMicroCluster;
 
     }
-
-
 
     private Optional<MicroCluster> calculateClosestMicroCluster(Sample sample) {
 

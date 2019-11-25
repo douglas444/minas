@@ -16,7 +16,7 @@ public class MoaFold1On {
         FileReader fileReader = new FileReader(new File("./datasets/moa_fold1_on.data"));
         DSFileReader dsFileReader = new DSFileReader(",", fileReader);
 
-        List<Sample> trainSet = dsFileReader.next(30000);
+        List<Sample> trainSet = dsFileReader.next(1000);
         MINASController minasController = new MINASController(trainSet);
 
         DSRunnable.run(minasController, dsFileReader);

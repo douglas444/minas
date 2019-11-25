@@ -15,6 +15,8 @@ public class MINAS {
     private DecisionModel sleepMemory;
     private int noveltyCount;
     private int unexplainedSamplesCount;
+    private int delayedPredictionsCount;
+    private int realTimePredictionsCount;
     private DynamicConfusionMatrix confusionMatrix;
 
 
@@ -27,6 +29,8 @@ public class MINAS {
 
         this.noveltyCount = 0;
         this.unexplainedSamplesCount = 0;
+        this.delayedPredictionsCount = 0;
+        this.realTimePredictionsCount = 0;
 
         Set<Integer> knownLabels = new HashSet<>();
         trainSet.forEach(sample -> knownLabels.add(sample.getY()));
@@ -66,6 +70,7 @@ public class MINAS {
         KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(this.temporaryMemory, Hyperparameter.K);
         List<Cluster> clusters = kMeansPlusPlus.fit();
         List<MicroCluster> microClusters = new ArrayList<>();
+        Map<MicroCluster, List<Sample>> samplesByMicroCluster = new HashMap<>();
 
         for (Cluster cluster : clusters) {
             double silhouette = this.decisionModel.calculateSilhouette(cluster);
@@ -73,6 +78,7 @@ public class MINAS {
                 this.temporaryMemory.removeAll(cluster.getSamples());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
+                samplesByMicroCluster.put(microCluster, cluster.getSamples());
             }
         }
 
@@ -101,6 +107,14 @@ public class MINAS {
 
             }
 
+            samplesByMicroCluster.get(microCluster).forEach(sample -> {
+
+                this.confusionMatrix.updatedDelayed(sample.getY(), microCluster.getLabel(),
+                        microCluster.getCategory() == Category.NOVELTY);
+                --this.unexplainedSamplesCount;
+                ++this.delayedPredictionsCount;
+            });
+
         });
 
         this.decisionModel.merge(microClusters);
@@ -116,10 +130,13 @@ public class MINAS {
             ++this.unexplainedSamplesCount;
             this.temporaryMemory.add(sample);
             if (this.temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
-                detectNoveltyAndUpdate();
+                this.detectNoveltyAndUpdate();
             }
+            this.confusionMatrix.addUnknown(sample.getY());
         } else {
-            this.confusionMatrix.addPrediction(sample.getY(), microCluster.get().getLabel());
+            ++this.realTimePredictionsCount;
+            this.confusionMatrix.addPrediction(sample.getY(), microCluster.get().getLabel(),
+                    microCluster.get().getCategory() == Category.NOVELTY);
         }
 
         ++this.timestamp;
@@ -154,5 +171,21 @@ public class MINAS {
 
     public void setUnexplainedSamplesCount(int unexplainedSamplesCount) {
         this.unexplainedSamplesCount = unexplainedSamplesCount;
+    }
+
+    public int getDelayedPredictionsCount() {
+        return delayedPredictionsCount;
+    }
+
+    public void setDelayedPredictionsCount(int delayedPredictionsCount) {
+        this.delayedPredictionsCount = delayedPredictionsCount;
+    }
+
+    public int getRealTimePredictionsCount() {
+        return realTimePredictionsCount;
+    }
+
+    public void setRealTimePredictionsCount(int realTimePredictionsCount) {
+        this.realTimePredictionsCount = realTimePredictionsCount;
     }
 }
