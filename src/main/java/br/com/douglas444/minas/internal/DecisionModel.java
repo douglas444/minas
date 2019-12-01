@@ -1,11 +1,11 @@
 package br.com.douglas444.minas.internal;
 
+import br.com.douglas444.minas.internal.config.VL;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DistanceComparator;
 import br.com.douglas444.mltk.Sample;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +24,9 @@ class DecisionModel {
 
     private Optional<MicroCluster> predict(Sample sample) {
 
-        Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(sample);
+        Optional<MicroCluster> closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample,
+                this.microClusters);
+
         if (!closestMicroCluster.isPresent()) {
             return closestMicroCluster;
         }
@@ -41,23 +43,9 @@ class DecisionModel {
 
     }
 
-    Optional<MicroCluster> predict(MicroCluster microCluster) {
+    Optional<MicroCluster> predict(MicroCluster microCluster, VL vl) {
 
-        Sample center = microCluster.calculateCenter();
-        Optional<MicroCluster> closestMicroCluster = calculateClosestMicroCluster(center);
-
-        if (!closestMicroCluster.isPresent()) {
-            return closestMicroCluster;
-        }
-
-        double distance = closestMicroCluster.get().calculateCenter().distance(center);
-        double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
-
-        if (distance > microClusterStandardDeviation * Hyperparameter.THRESHOLD_MULTIPLIER) {
-            return Optional.empty();
-        }
-
-        return closestMicroCluster;
+        return vl.predict(microCluster, this.microClusters);
 
     }
 
@@ -67,30 +55,6 @@ class DecisionModel {
         closestMicroCluster.ifPresent(microCluster -> microCluster.update(sample));
         return closestMicroCluster;
 
-    }
-
-    private Optional<MicroCluster> calculateClosestMicroCluster(Sample sample) {
-
-
-        HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
-
-        List<Sample> decisionModelCenters = this
-                .microClusters
-                .stream()
-                .map(microCluster -> {
-                    Sample center = microCluster.calculateCenter();
-                    microClusterByCenter.put(center, microCluster);
-                    return center;
-                })
-                .sorted(new DistanceComparator(sample))
-                .collect(Collectors.toList());
-
-        if (decisionModelCenters.size() > 0) {
-            Sample closestCenter = decisionModelCenters.get(0);
-            return Optional.of(microClusterByCenter.get(closestCenter));
-        } else {
-            return Optional.empty();
-        }
     }
 
     double calculateSilhouette(Cluster cluster) {
@@ -128,12 +92,12 @@ class DecisionModel {
         this.microClusters.remove(microCluster);
     }
 
-    List<MicroCluster> extractInactiveMicroClusters(int timestamp) {
+    List<MicroCluster> extractInactiveMicroClusters(int timestamp, int lifespan) {
 
         List<MicroCluster> inactiveMicroClusters = this
                 .microClusters
                 .stream()
-                .filter(microCluster -> timestamp - microCluster.getTimestamp() > Hyperparameter.P)
+                .filter(microCluster -> timestamp - microCluster.getTimestamp() > lifespan)
                 .collect(Collectors.toList());
 
         this.microClusters.removeAll(inactiveMicroClusters);

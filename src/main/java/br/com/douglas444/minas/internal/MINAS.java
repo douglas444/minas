@@ -1,9 +1,10 @@
 package br.com.douglas444.minas.internal;
 
+import br.com.douglas444.minas.internal.config.ClusteringAlgorithm;
+import br.com.douglas444.minas.internal.config.Configuration;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.Sample;
-import br.com.douglas444.mltk.kmeans.KMeansPlusPlus;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,11 +20,13 @@ public class MINAS {
     private int realTimePredictionsCount;
     private DynamicConfusionMatrix confusionMatrix;
 
+    private Configuration configuration;
 
-    public MINAS(List<Sample> trainSet) {
+
+    public MINAS(List<Sample> trainSet, Configuration configuration) {
 
         this.timestamp = 0;
-        this.decisionModel = buildDecisionModel(trainSet);
+        this.decisionModel = buildDecisionModel(trainSet, configuration.getClusteringAlgorithm());
         this.temporaryMemory = new ArrayList<>();
         this.sleepMemory = new DecisionModel();
 
@@ -36,10 +39,11 @@ public class MINAS {
         trainSet.forEach(sample -> knownLabels.add(sample.getY()));
         this.confusionMatrix = new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
 
+        this.configuration = configuration;
     }
 
 
-    private static DecisionModel buildDecisionModel(List<Sample> trainSet) {
+    private static DecisionModel buildDecisionModel(List<Sample> trainSet, ClusteringAlgorithm clusteringAlgorithm) {
 
         List<MicroCluster> microClusters = new ArrayList<>();
         HashMap<Integer, List<Sample>> samplesByLabel = new HashMap<>();
@@ -50,8 +54,7 @@ public class MINAS {
         });
 
         samplesByLabel.forEach((key, value) -> {
-            KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(value, Hyperparameter.K);
-            List<Cluster> clusters = kMeansPlusPlus.fit();
+            List<Cluster> clusters = clusteringAlgorithm.execute(value);
             microClusters.addAll(
                     clusters
                             .stream()
@@ -67,14 +70,13 @@ public class MINAS {
 
     private void detectNoveltyAndUpdate() {
 
-        KMeansPlusPlus kMeansPlusPlus = new KMeansPlusPlus(this.temporaryMemory, Hyperparameter.K);
-        List<Cluster> clusters = kMeansPlusPlus.fit();
+        List<Cluster> clusters = configuration.getClusteringAlgorithm().execute(this.temporaryMemory);
         List<MicroCluster> microClusters = new ArrayList<>();
         Map<MicroCluster, List<Sample>> samplesByMicroCluster = new HashMap<>();
 
         for (Cluster cluster : clusters) {
             double silhouette = this.decisionModel.calculateSilhouette(cluster);
-            if (silhouette > 0 && cluster.getSize() > Hyperparameter.MICRO_CLUSTER_MIN_SIZE) {
+            if (silhouette > 0 && cluster.getSize() > configuration.getMinClusterSize()) {
                 this.temporaryMemory.removeAll(cluster.getSamples());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
@@ -87,12 +89,12 @@ public class MINAS {
         microClusters.forEach(microCluster -> {
 
             Optional<MicroCluster> extended;
-            if ((extended = this.decisionModel.predict(microCluster)).isPresent()) {
+            if ((extended = this.decisionModel.predict(microCluster, configuration.getVl())).isPresent()) {
 
                 microCluster.setCategory(extended.get().getCategory());
                 microCluster.setLabel(extended.get().getLabel());
 
-            } else if ((extended = this.sleepMemory.predict(microCluster)).isPresent()) {
+            } else if ((extended = this.sleepMemory.predict(microCluster, configuration.getVl())).isPresent()) {
 
                 microCluster.setCategory(extended.get().getCategory());
                 microCluster.setLabel(extended.get().getLabel());
@@ -129,7 +131,7 @@ public class MINAS {
         if (!microCluster.isPresent()) {
             ++this.unexplainedSamplesCount;
             this.temporaryMemory.add(sample);
-            if (this.temporaryMemory.size() >= Hyperparameter.TEMPORARY_MEMORY_MIN_SIZE) {
+            if (this.temporaryMemory.size() >= this.configuration.getMinSizeDN()) {
                 this.detectNoveltyAndUpdate();
             }
             this.confusionMatrix.addUnknown(sample.getY());
@@ -140,9 +142,13 @@ public class MINAS {
         }
 
         ++this.timestamp;
-        if (this.timestamp % Hyperparameter.WINDOW_MAX_SIZE == 0) {
-            this.sleepMemory.merge(this.decisionModel.extractInactiveMicroClusters(this.timestamp));
-            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > Hyperparameter.TS);
+        if (this.timestamp % configuration.getWindowSize()== 0) {
+
+            List<MicroCluster> inactiveMicroClusters = this.decisionModel
+                    .extractInactiveMicroClusters(this.timestamp, configuration.getClusterLifespan());
+
+            this.sleepMemory.merge(inactiveMicroClusters);
+            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > configuration.getSampleLifespan());
         }
 
         return microCluster;
@@ -153,39 +159,19 @@ public class MINAS {
         return timestamp;
     }
 
-    public void setTimestamp(int timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public DynamicConfusionMatrix getConfusionMatrix() {
         return confusionMatrix;
-    }
-
-    public void setConfusionMatrix(DynamicConfusionMatrix confusionMatrix) {
-        this.confusionMatrix = confusionMatrix;
     }
 
     public int getUnexplainedSamplesCount() {
         return unexplainedSamplesCount;
     }
 
-    public void setUnexplainedSamplesCount(int unexplainedSamplesCount) {
-        this.unexplainedSamplesCount = unexplainedSamplesCount;
-    }
-
     public int getDelayedPredictionsCount() {
         return delayedPredictionsCount;
     }
 
-    public void setDelayedPredictionsCount(int delayedPredictionsCount) {
-        this.delayedPredictionsCount = delayedPredictionsCount;
-    }
-
     public int getRealTimePredictionsCount() {
         return realTimePredictionsCount;
-    }
-
-    public void setRealTimePredictionsCount(int realTimePredictionsCount) {
-        this.realTimePredictionsCount = realTimePredictionsCount;
     }
 }

@@ -1,6 +1,7 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierController;
+import br.com.douglas444.minas.internal.config.Configuration;
 import br.com.douglas444.minas.internal.MINAS;
 import br.com.douglas444.minas.internal.MicroCluster;
 import br.com.douglas444.mltk.Sample;
@@ -11,8 +12,10 @@ public class MINASController implements DSClassifierController {
 
     private MINAS minas;
 
-    public MINASController(List<Sample> trainSet) {
-        this.minas = new MINAS(trainSet);
+    public MINASController(List<Sample> trainSet, Configuration configuration) {
+
+        this.minas = new MINAS(trainSet, configuration);
+
     }
 
     @Override
