@@ -174,4 +174,12 @@ public class MINAS {
     public int getRealTimePredictionsCount() {
         return realTimePredictionsCount;
     }
+
+    public double cer() {
+        return this.confusionMatrix.cer();
+    }
+
+    public double unkR() {
+        return this.confusionMatrix.unkR();
+    }
 }
