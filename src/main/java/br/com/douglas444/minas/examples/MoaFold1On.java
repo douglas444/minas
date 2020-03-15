@@ -18,16 +18,16 @@ public class MoaFold1On {
 
         Configuration configuration = new Configuration(
                 2000,
-                200,
+                20,
                 4000,
                 4000,
                 4000,
-                new KMeans(10),
+                new KMeans(100),
                 new VL1(1.1));
 
         FileReader fileReader = new FileReader(new File("./datasets/moa_fold1_on.data"));
         DSFileReader dsFileReader = new DSFileReader(",", fileReader);
-        List<Sample> trainSet = dsFileReader.next(1000);
+        List<Sample> trainSet = dsFileReader.next(9000);
 
         MINASController minasController = new MINASController(trainSet, configuration);
 

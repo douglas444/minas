@@ -15,15 +15,16 @@ public class MINAS {
     private List<Sample> temporaryMemory;
     private DecisionModel sleepMemory;
     private int noveltyCount;
-    private int unexplainedSamplesCount;
-    private int delayedPredictionsCount;
-    private int realTimePredictionsCount;
     private DynamicConfusionMatrix confusionMatrix;
 
     private Configuration configuration;
 
+    private int al;
+    private boolean useAL;
 
     public MINAS(List<Sample> trainSet, Configuration configuration) {
+
+        this.useAL = true;
 
         this.timestamp = 0;
         this.decisionModel = buildDecisionModel(trainSet, configuration.getClusteringAlgorithm());
@@ -31,15 +32,13 @@ public class MINAS {
         this.sleepMemory = new DecisionModel();
 
         this.noveltyCount = 0;
-        this.unexplainedSamplesCount = 0;
-        this.delayedPredictionsCount = 0;
-        this.realTimePredictionsCount = 0;
 
         Set<Integer> knownLabels = new HashSet<>();
         trainSet.forEach(sample -> knownLabels.add(sample.getY()));
         this.confusionMatrix = new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
 
         this.configuration = configuration;
+        this.al = 0;
     }
 
 
@@ -75,8 +74,11 @@ public class MINAS {
         Map<MicroCluster, List<Sample>> samplesByMicroCluster = new HashMap<>();
 
         for (Cluster cluster : clusters) {
+
             double silhouette = this.decisionModel.calculateSilhouette(cluster);
+
             if (silhouette > 0 && cluster.getSize() > configuration.getMinClusterSize()) {
+
                 this.temporaryMemory.removeAll(cluster.getSamples());
                 MicroCluster microCluster = new MicroCluster(cluster);
                 microClusters.add(microCluster);
@@ -84,7 +86,6 @@ public class MINAS {
             }
         }
 
-        List<MicroCluster> awakenedMicroClusters = new ArrayList<>();
 
         microClusters.forEach(microCluster -> {
 
@@ -98,29 +99,104 @@ public class MINAS {
 
                 microCluster.setCategory(extended.get().getCategory());
                 microCluster.setLabel(extended.get().getLabel());
-                awakenedMicroClusters.add(extended.get());
+
                 this.sleepMemory.remove(extended.get());
+                this.decisionModel.merge(extended.get());
 
             } else {
 
-                microCluster.setCategory(Category.NOVELTY);
-                microCluster.setLabel(this.noveltyCount);
-                ++this.noveltyCount;
+                List<MicroCluster> decisionModelMicroClusters = this.decisionModel.getMicroClusters();
+                List<MicroCluster> sleepMemoryMicroClusters = this.sleepMemory.getMicroClusters();
+                List<MicroCluster> microClusters1;
+
+                double dist = Double.MAX_VALUE;
+                double distSleep = Double.MAX_VALUE;
+
+                if (decisionModelMicroClusters.size() > 0) {
+                    dist = MicroCluster.calculateClosestMicroCluster(microCluster.calculateCenter(), decisionModelMicroClusters).get().calculateCenter().distance(microCluster.calculateCenter());
+                }
+                if (decisionModelMicroClusters.size() > 0) {
+                    distSleep = MicroCluster.calculateClosestMicroCluster(microCluster.calculateCenter(), sleepMemoryMicroClusters).get().calculateCenter().distance(microCluster.calculateCenter());
+                }
+
+                boolean sleep = false;
+
+                if (dist < distSleep) {
+                    microClusters1 = decisionModelMicroClusters;
+                } else {
+                    microClusters1 = sleepMemoryMicroClusters;
+                    sleep = true;
+                }
+
+                if (useAL && estimateBayesError(microCluster.calculateCenter(), microClusters1) < 0.5) {
+
+                    List<Sample> samples = samplesByMicroCluster.get(microCluster);
+                    HashMap<Sample, Double> riskBySample = new HashMap<>();
+
+                    samples.forEach(sample -> {
+                        riskBySample.put(sample, estimateBayesError(sample, microClusters1));
+                    });
+
+                    Sample maxRiskSample = Objects.requireNonNull(riskBySample
+                            .entrySet()
+                            .stream()
+                            .max(Map.Entry.comparingByValue())
+                            .orElse(null)).getKey();
+
+                    MicroCluster closest = MicroCluster.calculateClosestMicroCluster(maxRiskSample, microClusters1).orElse(null);
+
+                    if (closest != null
+                            && closest.getCategory() != Category.NOVELTY
+                            && maxRiskSample.getY() == closest.getLabel()) {
+
+                        ++this.al;
+
+                        microCluster.setCategory(closest.getCategory());
+                        microCluster.setLabel(closest.getLabel());
+
+
+                        if (sleep) {
+
+                            this.sleepMemory.remove(closest);
+                            this.decisionModel.merge(closest);
+                        }
+
+                    } else {
+
+                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setLabel(this.noveltyCount);
+                        ++this.noveltyCount;
+
+                        if (closest != null && closest.getCategory() != Category.NOVELTY && maxRiskSample.getY() != closest.getLabel()) {
+                            ++this.al;
+                        }
+
+
+                    }
+
+
+                } else {
+
+                    microCluster.setCategory(Category.NOVELTY);
+                    microCluster.setLabel(this.noveltyCount);
+                    ++this.noveltyCount;
+                }
+
+
 
             }
+
+            this.decisionModel.merge(microCluster);
 
             samplesByMicroCluster.get(microCluster).forEach(sample -> {
 
                 this.confusionMatrix.updatedDelayed(sample.getY(), microCluster.getLabel(),
                         microCluster.getCategory() == Category.NOVELTY);
-                --this.unexplainedSamplesCount;
-                ++this.delayedPredictionsCount;
+
             });
 
         });
 
-        this.decisionModel.merge(microClusters);
-        this.decisionModel.merge(awakenedMicroClusters);
     }
 
 
@@ -129,14 +205,16 @@ public class MINAS {
         Optional<MicroCluster> microCluster = this.decisionModel.predictAndUpdate(sample);
 
         if (!microCluster.isPresent()) {
-            ++this.unexplainedSamplesCount;
+
             this.temporaryMemory.add(sample);
+            this.confusionMatrix.addUnknown(sample.getY());
+
             if (this.temporaryMemory.size() >= this.configuration.getMinSizeDN()) {
                 this.detectNoveltyAndUpdate();
             }
-            this.confusionMatrix.addUnknown(sample.getY());
+
         } else {
-            ++this.realTimePredictionsCount;
+
             this.confusionMatrix.addPrediction(sample.getY(), microCluster.get().getLabel(),
                     microCluster.get().getCategory() == Category.NOVELTY);
         }
@@ -150,8 +228,43 @@ public class MINAS {
             this.sleepMemory.merge(inactiveMicroClusters);
             this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > configuration.getSampleLifespan());
         }
-
+        System.out.println(this.al);
         return microCluster;
+
+    }
+
+    public static double estimateBayesError(Sample target, List<MicroCluster> microClusters) {
+
+        HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
+        microClusters.forEach(microCluster -> {
+
+            microClustersByLabel.putIfAbsent(microCluster.getLabel(), new ArrayList<>());
+            microClustersByLabel.get(microCluster.getLabel()).add(microCluster);
+
+        });
+
+        HashMap<Integer, MicroCluster> closestMicroClusterByLabel = new HashMap<>();
+        microClustersByLabel.forEach((key, value) -> {
+
+            MicroCluster closest = MicroCluster.calculateClosestMicroCluster(target, value).orElse(null);
+            closestMicroClusterByLabel.put(key, closest);
+
+        });
+
+        double n = 1.0 / closestMicroClusterByLabel
+                .values()
+                .stream()
+                .map(microCluster -> microCluster.calculateCenter().distance(target))
+                .min(Double::compare)
+                .orElse(0.0);
+
+        double d = closestMicroClusterByLabel
+                .values()
+                .stream()
+                .map(microCluster -> 1.0 / microCluster.calculateCenter().distance(target))
+                .reduce(0.0, Double::sum);
+
+        return 1 - (n/d);
 
     }
 
@@ -161,18 +274,6 @@ public class MINAS {
 
     public DynamicConfusionMatrix getConfusionMatrix() {
         return confusionMatrix;
-    }
-
-    public int getUnexplainedSamplesCount() {
-        return unexplainedSamplesCount;
-    }
-
-    public int getDelayedPredictionsCount() {
-        return delayedPredictionsCount;
-    }
-
-    public int getRealTimePredictionsCount() {
-        return realTimePredictionsCount;
     }
 
     public double cer() {

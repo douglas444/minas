@@ -84,6 +84,10 @@ class DecisionModel {
 
     }
 
+    void merge(MicroCluster microCluster) {
+        this.microClusters.add(microCluster);
+    }
+
     void merge(List<MicroCluster> microClusters) {
         this.microClusters.addAll(microClusters);
     }
@@ -103,5 +107,13 @@ class DecisionModel {
         this.microClusters.removeAll(inactiveMicroClusters);
 
         return inactiveMicroClusters;
+    }
+
+    public List<MicroCluster> getMicroClusters() {
+        return microClusters;
+    }
+
+    public void setMicroClusters(List<MicroCluster> microClusters) {
+        this.microClusters = microClusters;
     }
 }
