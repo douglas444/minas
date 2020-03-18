@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.config;
 
-import br.com.douglas444.minas.MicroCluster;
-import br.com.douglas444.minas.Prediction;
+import br.com.douglas444.minas.core.MicroCluster;
+import br.com.douglas444.minas.core.Prediction;
 import br.com.douglas444.mltk.Sample;
 
 import java.util.List;
@@ -27,12 +27,12 @@ public class VL1 implements VL {
             double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
             if (distance <= microClusterStandardDeviation * this.thresholdMultiplier) {
-                return new Prediction(closestMicroCluster.get());
+                return new Prediction(closestMicroCluster.get(), true);
             }
 
         }
 
-        return new Prediction(null);
+        return new Prediction(closestMicroCluster.orElse(null), false);
 
     }
 
