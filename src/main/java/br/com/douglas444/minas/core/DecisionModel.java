@@ -1,4 +1,4 @@
-package br.com.douglas444.minas;
+package br.com.douglas444.minas.core;
 
 import br.com.douglas444.minas.config.VL;
 import br.com.douglas444.mltk.Cluster;
@@ -32,11 +32,11 @@ class DecisionModel {
             double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
             if (distance <= microClusterStandardDeviation) {
-                return new Prediction(closestMicroCluster.get());
+                return new Prediction(closestMicroCluster.get(), true);
             }
         }
 
-        return new Prediction(null);
+        return new Prediction(closestMicroCluster.orElse(null), false);
 
     }
 
@@ -46,7 +46,9 @@ class DecisionModel {
 
     Prediction predictAndUpdate(Sample sample) {
         Prediction prediction = this.predict(sample);
-        prediction.ifExplained(microCluster -> microCluster.update(sample));
+        if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
+            prediction.getClosestMicroCluster().get().update(sample);
+        }
         return prediction;
     }
 
@@ -100,51 +102,8 @@ class DecisionModel {
         return inactiveMicroClusters;
     }
 
-    public double estimateBayesError(Sample target) {
-
-        HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
-        microClusters.forEach(microCluster -> {
-            microClustersByLabel.putIfAbsent(microCluster.getLabel(), new ArrayList<>());
-            microClustersByLabel.get(microCluster.getLabel()).add(microCluster);
-        });
-
-        HashMap<Integer, MicroCluster> closestMicroClusterByLabel = new HashMap<>();
-        microClustersByLabel.forEach((key, value) -> {
-            MicroCluster.calculateClosestMicroCluster(target, value)
-                    .ifPresent(closest -> closestMicroClusterByLabel.put(key, closest));
-        });
-
-        double n = 1.0 / closestMicroClusterByLabel
-                .values()
-                .stream()
-                .map(microCluster -> microCluster.calculateCenter().distance(target))
-                .min(Double::compare)
-                .orElse(1.0);
-
-        double d = closestMicroClusterByLabel
-                .values()
-                .stream()
-                .map(microCluster -> 1.0 / (1 + microCluster.calculateCenter().distance(target)))
-                .reduce(0.0, Double::sum);
-
-        return 1 - (n/ (d + 1));
-
-    }
-
-    public Sample getMostInformativeSample(List<Sample> samples) {
-
-        Sample maxRiskSample = samples.get(0);
-        double maxRisk = 0;
-
-        for (Sample sample : samples) {
-            double risk = estimateBayesError(sample);
-            if (risk > maxRisk) {
-                maxRiskSample = sample;
-                maxRisk = risk;
-            }
-        }
-
-        return maxRiskSample;
+    public List<MicroCluster> getMicroClusters() {
+        return microClusters;
     }
 
     public Optional<MicroCluster> getClosestMicroCluster(Sample sample) {

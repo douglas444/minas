@@ -1,7 +1,8 @@
-package br.com.douglas444.minas;
+package br.com.douglas444.minas.core;
 
 import br.com.douglas444.minas.config.ClusteringAlgorithm;
 import br.com.douglas444.minas.config.Configuration;
+import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.Sample;
@@ -81,37 +82,30 @@ public class MINAS {
 
             if (!prediction.isExplained()) {
                 prediction = this.sleepMemory.predict(microCluster, configuration.getVl());
-                if (prediction.isExplained()) {
-                    this.sleepMemory.remove(prediction.getExplainedBy());
-                    this.decisionModel.merge(prediction.getExplainedBy());
+                if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
+                    this.sleepMemory.remove(prediction.getClosestMicroCluster().get());
+                    this.decisionModel.merge(prediction.getClosestMicroCluster().get());
                 }
             }
 
-            if (prediction.isExplained()) {
+            if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
 
-                microCluster.setCategory(prediction.getExplainedBy().getCategory());
-                microCluster.setLabel(prediction.getExplainedBy().getLabel());
-
-            } else if (this.decisionModel.estimateBayesError(microCluster.calculateCenter()) < 0.5) {
-
-                Sample sample = this.decisionModel.getMostInformativeSample(cohesiveCluster.getSamples());
-                this.decisionModel.getClosestMicroCluster(sample)
-                        .ifPresent((closest) -> {
-                            Integer label = Oracle.label(sample);
-                            if (closest.getCategory() == Category.KNOWN && label == closest.getLabel()) {
-                                microCluster.setCategory(closest.getCategory());
-                                microCluster.setLabel(closest.getLabel());
-                            } else {
-                                microCluster.setCategory(Category.NOVELTY);
-                                microCluster.setLabel(this.noveltyCount);
-                                ++this.noveltyCount;
-                            }
-                        });
+                microCluster.setCategory(prediction.getClosestMicroCluster().get().getCategory());
+                microCluster.setLabel(prediction.getClosestMicroCluster().get().getLabel());
 
             } else {
-                microCluster.setCategory(Category.NOVELTY);
-                microCluster.setLabel(this.noveltyCount);
-                ++this.noveltyCount;
+
+                boolean isNovel = Feedback.validateConceptEvolution(prediction, microCluster,
+                        cohesiveCluster.getSamples(), decisionModel.getMicroClusters());
+
+                if (isNovel) {
+                    microCluster.setCategory(Category.NOVELTY);
+                    microCluster.setLabel(this.noveltyCount);
+                    ++this.noveltyCount;
+                } else if (prediction.getClosestMicroCluster().isPresent()) {
+                    microCluster.setCategory(prediction.getClosestMicroCluster().get().getCategory());
+                    microCluster.setLabel(prediction.getClosestMicroCluster().get().getLabel());
+                }
             }
 
             for (Sample sample : cohesiveCluster.getSamples()) {
@@ -132,10 +126,10 @@ public class MINAS {
         sample.setT(this.timestamp);
         Prediction prediction = this.decisionModel.predictAndUpdate(sample);
 
-        if(prediction.isExplained()) {
+        if(prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
 
-            this.confusionMatrix.addPrediction(sample.getY(), prediction.getExplainedBy().getLabel(),
-                    prediction.getExplainedBy().getCategory() == Category.NOVELTY);
+            this.confusionMatrix.addPrediction(sample.getY(), prediction.getClosestMicroCluster().get().getLabel(),
+                    prediction.getClosestMicroCluster().get().getCategory() == Category.NOVELTY);
 
         } else {
             this.temporaryMemory.add(sample);

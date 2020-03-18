@@ -2,6 +2,8 @@ package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierController;
 import br.com.douglas444.minas.config.Configuration;
+import br.com.douglas444.minas.core.MINAS;
+import br.com.douglas444.minas.core.Prediction;
 import br.com.douglas444.mltk.Sample;
 import java.util.List;
 import java.util.Optional;
