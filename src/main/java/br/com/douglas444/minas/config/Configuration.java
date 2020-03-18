@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.internal.config;
+package br.com.douglas444.minas.config;
 
 public class Configuration {
 

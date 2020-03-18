@@ -1,11 +1,11 @@
-package br.com.douglas444.minas.examples;
+package br.com.douglas444.examples;
 
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSRunnable;
 import br.com.douglas444.minas.MINASController;
-import br.com.douglas444.minas.internal.config.Configuration;
-import br.com.douglas444.minas.internal.config.KMeans;
-import br.com.douglas444.minas.internal.config.VL1;
+import br.com.douglas444.minas.config.Configuration;
+import br.com.douglas444.minas.config.KMeans;
+import br.com.douglas444.minas.config.VL1;
 import br.com.douglas444.mltk.Sample;
 import java.io.File;
 import java.io.FileReader;

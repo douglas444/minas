@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.internal.config;
+package br.com.douglas444.minas.config;
 
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.Sample;
