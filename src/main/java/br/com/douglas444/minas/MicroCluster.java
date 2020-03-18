@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.internal;
+package br.com.douglas444.minas;
 
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DistanceComparator;
@@ -41,16 +41,6 @@ public class MicroCluster {
         this.ss = new double[dimensions];
 
         samples.forEach(this::update);
-    }
-
-    public MicroCluster(int dimensions, List<Sample> samples) {
-
-        this.n = 0;
-        this.ls = new double[dimensions];
-        this.ss = new double[dimensions];
-
-        samples.forEach(this::update);
-
     }
 
     public void update(Sample sample) {
@@ -104,36 +94,8 @@ public class MicroCluster {
         }
     }
 
-    public int getN() {
-        return n;
-    }
-
-    public void setN(int n) {
-        this.n = n;
-    }
-
-    public double[] getLs() {
-        return ls;
-    }
-
-    public void setLs(double[] ls) {
-        this.ls = ls;
-    }
-
-    public double[] getSs() {
-        return ss;
-    }
-
-    public void setSs(double[] ss) {
-        this.ss = ss;
-    }
-
     public int getTimestamp() {
         return timestamp;
-    }
-
-    public void setTimestamp(int timestamp) {
-        this.timestamp = timestamp;
     }
 
     public int getLabel() {

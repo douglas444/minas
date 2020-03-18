@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.internal;
+package br.com.douglas444.minas;
 
 public enum Category {
     NOVELTY,
