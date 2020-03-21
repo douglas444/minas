@@ -45,7 +45,9 @@ public class MicroCluster {
 
     public void update(Sample sample) {
         for (int i = 0; i < sample.getX().length; ++i) {
-            this.timestamp = sample.getT();
+            if (this.timestamp < sample.getT()) {
+                this.timestamp = sample.getT();
+            }
             this.ls[i] += sample.getX()[i];
             this.ss[i] += sample.getX()[i] * sample.getX()[i];
         }
@@ -96,6 +98,10 @@ public class MicroCluster {
 
     public int getTimestamp() {
         return timestamp;
+    }
+
+    public void setTimestamp(int timestamp) {
+        this.timestamp = timestamp;
     }
 
     public int getLabel() {
