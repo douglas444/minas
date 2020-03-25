@@ -44,10 +44,12 @@ public class MicroCluster {
     }
 
     public void update(Sample sample) {
+
+        if (this.timestamp < sample.getT()) {
+            this.timestamp = sample.getT();
+        }
+
         for (int i = 0; i < sample.getX().length; ++i) {
-            if (this.timestamp < sample.getT()) {
-                this.timestamp = sample.getT();
-            }
             this.ls[i] += sample.getX()[i];
             this.ss[i] += sample.getX()[i] * sample.getX()[i];
         }
@@ -67,7 +69,7 @@ public class MicroCluster {
         double sum = 0;
 
         for (int i = 0; i < this.ss.length; ++i) {
-            sum += Math.sqrt(this.ss[i]/this.n - (this.ls[i]/this.n * this.ls[i]/this.n));
+            sum += Math.sqrt(this.ss[i]/this.n - ((this.ls[i]/this.n) * (this.ls[i]/this.n)));
         }
 
         return sum;
