@@ -6,6 +6,7 @@ import br.com.douglas444.mltk.Sample;
 
 import java.util.List;
 
+@FunctionalInterface
 public interface SamplePredictor {
 
     Prediction predict(Sample sample, List<MicroCluster> temporaryMemory);

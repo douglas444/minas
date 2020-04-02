@@ -3,15 +3,15 @@ package br.com.douglas444.examples;
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSRunnable;
 import br.com.douglas444.minas.MINASController;
-import br.com.douglas444.minas.config.Configuration;
-import br.com.douglas444.minas.config.KMeansController;
-import br.com.douglas444.minas.config.MicroClusterPredictorType1;
-import br.com.douglas444.minas.config.SamplePredictorType1;
+import br.com.douglas444.minas.config.*;
+import br.com.douglas444.minas.core.MicroCluster;
+import br.com.douglas444.minas.core.Prediction;
 import br.com.douglas444.mltk.Sample;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public class MoaFold1On {
 
@@ -22,7 +22,7 @@ public class MoaFold1On {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final boolean INCREMENTALLY_UPDATABLE = false;
     private static final boolean FEEDBACK_NEEDED = false;
-    private static final int K = 100;
+    private static final KMeansController K_MEANS_CONTROLLER = new KMeansController(100);
     private static final double THRESHOLD_MULTIPLIER = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SLEEP = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2.0;
@@ -41,11 +41,11 @@ public class MoaFold1On {
                 SAMPLE_LIFESPAN,
                 INCREMENTALLY_UPDATABLE,
                 FEEDBACK_NEEDED,
-                new KMeansController(K),
-                new KMeansController(K),
-                new MicroClusterPredictorType1(THRESHOLD_MULTIPLIER),
-                new MicroClusterPredictorType1(THRESHOLD_MULTIPLIER_SLEEP),
-                new SamplePredictorType1(THRESHOLD_MULTIPLIER_SAMPLE));
+                K_MEANS_CONTROLLER,
+                K_MEANS_CONTROLLER,
+                MAIN_MICRO_CLUSTER_PREDICTOR,
+                SLEEP_MICRO_CLUSTER_PREDICTOR,
+                SAMPLE_PREDICTOR);
 
         DSFileReader fileReader = loadDSFileReader();
         List<Sample> trainSet = fileReader.next(TRAIN_SET_SIZE);
@@ -59,5 +59,66 @@ public class MoaFold1On {
         FileReader fileReader = new FileReader(new File(DATA_FILE));
         return new DSFileReader(SEPARATOR, fileReader);
     }
+
+    //---------------------------------------------------------------------------------------------
+
+    public static final MicroClusterPredictor MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
+
+        Sample center = microCluster.calculateCenter();
+        Optional<MicroCluster> closestMicroCluster = MicroCluster.calculateClosestMicroCluster(center, microClusters);
+
+        if (closestMicroCluster.isPresent()) {
+
+            double distance = closestMicroCluster.get().calculateCenter().distance(center);
+            double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
+
+            if (distance <= microClusterStandardDeviation * THRESHOLD_MULTIPLIER) {
+                return new Prediction(closestMicroCluster.get(), true);
+            }
+
+        }
+
+        return new Prediction(closestMicroCluster.orElse(null), false);
+
+    };
+
+    public static final MicroClusterPredictor SLEEP_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
+
+        Sample center = microCluster.calculateCenter();
+        Optional<MicroCluster> closestMicroCluster = MicroCluster.calculateClosestMicroCluster(center, microClusters);
+
+        if (closestMicroCluster.isPresent()) {
+
+            double distance = closestMicroCluster.get().calculateCenter().distance(center);
+            double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
+
+            if (distance <= microClusterStandardDeviation * THRESHOLD_MULTIPLIER_SLEEP) {
+                return new Prediction(closestMicroCluster.get(), true);
+            }
+
+        }
+
+        return new Prediction(closestMicroCluster.orElse(null), false);
+
+    };
+
+    public static final SamplePredictor SAMPLE_PREDICTOR = (sample, microClusters) -> {
+
+        Optional<MicroCluster> closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample,
+                microClusters);
+
+        if (closestMicroCluster.isPresent()) {
+
+            Sample center = closestMicroCluster.get().calculateCenter();
+            double distance = center.distance(sample);
+            double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
+
+            if (distance <= THRESHOLD_MULTIPLIER_SAMPLE * microClusterStandardDeviation) {
+                return new Prediction(closestMicroCluster.get(), true);
+            }
+        }
+
+        return new Prediction(closestMicroCluster.orElse(null), false);
+    };
 
 }
