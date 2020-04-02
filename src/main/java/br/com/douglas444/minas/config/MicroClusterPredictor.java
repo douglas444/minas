@@ -4,7 +4,7 @@ import br.com.douglas444.minas.core.MicroCluster;
 import br.com.douglas444.minas.core.Prediction;
 import java.util.List;
 
-public interface VL {
+public interface MicroClusterPredictor {
 
     Prediction predict(MicroCluster microCluster, List<MicroCluster> temporaryMemory);
 

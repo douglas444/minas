@@ -5,86 +5,86 @@ public class Configuration {
     private int minSizeDN;
     private int minClusterSize;
     private int windowSize;
-    private int clusterLifespan;
+    private int microClusterLifespan;
     private int sampleLifespan;
+    private boolean incrementallyUpdatable;
+    private boolean feedbackNeeded;
 
-    private ClusteringAlgorithmController clusteringAlgorithmController;
-    private VL vl;
-    private VL vlSleep;
+    private ClusteringAlgorithmController mainClusteringAlgorithm;
+    private ClusteringAlgorithmController decisionModelBuilderClusteringAlgorithm;
 
-    public Configuration(int minSizeDN, int minClusterSize, int windowSize, int clusterLifespan, int sampleLifespan,
-                         ClusteringAlgorithmController clusteringAlgorithmController, VL vl, VL vlSleep) {
+    private MicroClusterPredictor mainMicroClusterPredictor;
+    private MicroClusterPredictor sleepMemoryMicroClusterPredictor;
+    private SamplePredictor samplePredictor;
+
+    public Configuration(int minSizeDN, int minClusterSize, int windowSize, int microClusterLifespan,
+                         int sampleLifespan, boolean incrementallyUpdatable, boolean feedbackNeeded,
+                         ClusteringAlgorithmController mainClusteringAlgorithm,
+                         ClusteringAlgorithmController decisionModelBuilderClusteringAlgorithm,
+                         MicroClusterPredictor mainMicroClusterPredictor,
+                         MicroClusterPredictor sleepMemoryMicroClusterPredictor,
+                         SamplePredictor samplePredictor) {
+
+        this.feedbackNeeded = feedbackNeeded;
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
         this.windowSize = windowSize;
-        this.clusterLifespan = clusterLifespan;
+        this.microClusterLifespan = microClusterLifespan;
         this.sampleLifespan = sampleLifespan;
-        this.clusteringAlgorithmController = clusteringAlgorithmController;
-        this.vl = vl;
-        this.vlSleep = vlSleep;
+        this.mainClusteringAlgorithm = mainClusteringAlgorithm;
+        this.mainMicroClusterPredictor = mainMicroClusterPredictor;
+        this.sleepMemoryMicroClusterPredictor = sleepMemoryMicroClusterPredictor;
+        this.samplePredictor = samplePredictor;
+        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.decisionModelBuilderClusteringAlgorithm = decisionModelBuilderClusteringAlgorithm;
     }
 
     public int getMinSizeDN() {
         return minSizeDN;
     }
 
-    public void setMinSizeDN(int minSizeDN) {
-        this.minSizeDN = minSizeDN;
-    }
-
     public int getMinClusterSize() {
         return minClusterSize;
-    }
-
-    public void setMinClusterSize(int minClusterSize) {
-        this.minClusterSize = minClusterSize;
     }
 
     public int getWindowSize() {
         return windowSize;
     }
 
-    public void setWindowSize(int windowSize) {
-        this.windowSize = windowSize;
-    }
-
-    public int getClusterLifespan() {
-        return clusterLifespan;
-    }
-
-    public void setClusterLifespan(int clusterLifespan) {
-        this.clusterLifespan = clusterLifespan;
+    public int getMicroClusterLifespan() {
+        return microClusterLifespan;
     }
 
     public int getSampleLifespan() {
         return sampleLifespan;
     }
 
-    public void setSampleLifespan(int sampleLifespan) {
-        this.sampleLifespan = sampleLifespan;
+    public ClusteringAlgorithmController getMainClusteringAlgorithm() {
+        return mainClusteringAlgorithm;
     }
 
-    public ClusteringAlgorithmController getClusteringAlgorithmController() {
-        return clusteringAlgorithmController;
+    public MicroClusterPredictor getMainMicroClusterPredictor() {
+        return mainMicroClusterPredictor;
     }
 
-    public void setClusteringAlgorithmController(ClusteringAlgorithmController clusteringAlgorithmController) {
-        this.clusteringAlgorithmController = clusteringAlgorithmController;
+    public MicroClusterPredictor getSleepMemoryMicroClusterPredictor() {
+        return sleepMemoryMicroClusterPredictor;
     }
 
-    public VL getVl() {
-        return vl;
+    public boolean isIncrementallyUpdatable() {
+        return incrementallyUpdatable;
     }
 
-    public void setVl(VL vl) {
-        this.vl = vl;
+
+    public SamplePredictor getSamplePredictor() {
+        return samplePredictor;
     }
 
-    public VL getVlSleep() {
-        return vlSleep;
+    public ClusteringAlgorithmController getDecisionModelBuilderClusteringAlgorithm() {
+        return decisionModelBuilderClusteringAlgorithm;
     }
 
-    public void setVlSleep(VL vlSleep) {
-        this.vlSleep = vlSleep;
+    public boolean isFeedbackNeeded() {
+        return feedbackNeeded;
     }
 }

@@ -16,11 +16,11 @@ public class Feedback {
 
         if (estimateBayesError(concept.calculateCenter(), modelMicroClusters) < 0.5) {
 
-            Sample sample = getMostInformativeSample(samples, modelMicroClusters);
+            final Sample sample = getMostInformativeSample(samples, modelMicroClusters);
 
             if (prediction.getClosestMicroCluster().isPresent()) {
-                MicroCluster closest = prediction.getClosestMicroCluster().get();
-                Integer label = Oracle.label(sample);
+                final MicroCluster closest = prediction.getClosestMicroCluster().get();
+                final Integer label = Oracle.label(sample);
                 return !(closest.getCategory() == Category.KNOWN && label == closest.getLabel());
             }
         }
@@ -33,7 +33,7 @@ public class Feedback {
         double maxRisk = 0;
 
         for (Sample sample : samples) {
-            double risk = estimateBayesError(sample, microClusters);
+            final double risk = estimateBayesError(sample, microClusters);
             if (risk > maxRisk) {
                 maxRiskSample = sample;
                 maxRisk = risk;
@@ -46,26 +46,26 @@ public class Feedback {
 
     private static double estimateBayesError(Sample target, List<MicroCluster> microClusters) {
 
-        HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
+        final HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
         microClusters.forEach(microCluster -> {
             microClustersByLabel.putIfAbsent(microCluster.getLabel(), new ArrayList<>());
             microClustersByLabel.get(microCluster.getLabel()).add(microCluster);
         });
 
-        HashMap<Integer, MicroCluster> closestMicroClusterByLabel = new HashMap<>();
+        final HashMap<Integer, MicroCluster> closestMicroClusterByLabel = new HashMap<>();
         microClustersByLabel.forEach((key, value) -> {
             MicroCluster.calculateClosestMicroCluster(target, value)
                     .ifPresent(closest -> closestMicroClusterByLabel.put(key, closest));
         });
 
-        double n = 1.0 / closestMicroClusterByLabel
+        final double n = 1.0 / closestMicroClusterByLabel
                 .values()
                 .stream()
                 .map(microCluster -> microCluster.calculateCenter().distance(target))
                 .min(Double::compare)
                 .orElse(0.0);
 
-        double d = closestMicroClusterByLabel
+        final double d = closestMicroClusterByLabel
                 .values()
                 .stream()
                 .map(microCluster -> 1.0 / (microCluster.calculateCenter().distance(target)))

@@ -18,8 +18,8 @@ public class MicroCluster {
 
     public MicroCluster(Cluster cluster) {
 
-        int dimensions = cluster.getSamples().get(0).getX().length;
-        List<Sample> samples = cluster.getSamples();
+        final int dimensions = cluster.getSamples().get(0).getX().length;
+        final List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
@@ -33,8 +33,8 @@ public class MicroCluster {
 
         this.label = label;
 
-        int dimensions = cluster.getSamples().get(0).getX().length;
-        List<Sample> samples = cluster.getSamples();
+        final int dimensions = cluster.getSamples().get(0).getX().length;
+        final List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
@@ -58,7 +58,7 @@ public class MicroCluster {
     }
 
     public Sample calculateCenter() {
-        double[] x = this.ls.clone();
+        final double[] x = this.ls.clone();
         for (int i = 0; i < x.length; ++i) {
             x[i] /= this.n;
         }
@@ -79,10 +79,9 @@ public class MicroCluster {
 
     public static Optional<MicroCluster> calculateClosestMicroCluster(Sample sample, List<MicroCluster> microClusters) {
 
+        final HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
 
-        HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
-
-        List<Sample> decisionModelCenters = microClusters.stream()
+        final List<Sample> decisionModelCenters = microClusters.stream()
                 .map(microCluster -> {
                     Sample center = microCluster.calculateCenter();
                     microClusterByCenter.put(center, microCluster);
@@ -92,7 +91,7 @@ public class MicroCluster {
                 .collect(Collectors.toList());
 
         if (decisionModelCenters.size() > 0) {
-            Sample closestCenter = decisionModelCenters.get(0);
+            final Sample closestCenter = decisionModelCenters.get(0);
             return Optional.of(microClusterByCenter.get(closestCenter));
         } else {
             return Optional.empty();
@@ -101,10 +100,6 @@ public class MicroCluster {
 
     public int getTimestamp() {
         return timestamp;
-    }
-
-    public void setTimestamp(int timestamp) {
-        this.timestamp = timestamp;
     }
 
     public int getLabel() {

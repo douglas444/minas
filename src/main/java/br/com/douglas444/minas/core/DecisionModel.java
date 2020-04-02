@@ -1,6 +1,7 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.config.VL;
+import br.com.douglas444.minas.config.MicroClusterPredictor;
+import br.com.douglas444.minas.config.SamplePredictor;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DistanceComparator;
 import br.com.douglas444.mltk.Sample;
@@ -10,46 +11,42 @@ import java.util.stream.Collectors;
 
 class DecisionModel {
 
+    private boolean incrementallyUpdatable;
+    private MicroClusterPredictor microClusterPredictor;
+    private SamplePredictor samplePredictor;
     private List<MicroCluster> microClusters;
 
-    DecisionModel() {
+    public DecisionModel(boolean incrementallyUpdatable, MicroClusterPredictor microClusterPredictor,
+                         SamplePredictor samplePredictor) {
+
+        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.microClusterPredictor = microClusterPredictor;
+        this.samplePredictor = samplePredictor;
         this.microClusters = new ArrayList<>();
     }
 
-    DecisionModel(List<MicroCluster> microClusters) {
+    public DecisionModel(boolean incrementallyUpdatable, MicroClusterPredictor microClusterPredictor,
+                         SamplePredictor samplePredictor, List<MicroCluster> microClusters) {
+
+        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.microClusterPredictor = microClusterPredictor;
+        this.samplePredictor = samplePredictor;
         this.microClusters = new ArrayList<>(microClusters);
     }
 
-    private Prediction predict(Sample sample) {
+    Prediction predict(Sample sample) {
 
-        Optional<MicroCluster> closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample,
-                this.microClusters);
+        Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
 
-        if (closestMicroCluster.isPresent()) {
-
-            Sample center = closestMicroCluster.get().calculateCenter();
-            double distance = center.distance(sample);
-            double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
-
-            if (distance <= 2 * microClusterStandardDeviation) {
-                return new Prediction(closestMicroCluster.get(), true);
-            }
-        }
-
-        return new Prediction(closestMicroCluster.orElse(null), false);
-
-    }
-
-    Prediction predict(MicroCluster microCluster, VL vl) {
-        return vl.predict(microCluster, this.microClusters);
-    }
-
-    Prediction predictAndUpdate(Sample sample) {
-        Prediction prediction = this.predict(sample);
-        if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
+        if (incrementallyUpdatable && prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
             prediction.getClosestMicroCluster().get().update(sample);
         }
+
         return prediction;
+    }
+
+    Prediction predict(MicroCluster microCluster) {
+        return this.microClusterPredictor.predict(microCluster, this.microClusters);
     }
 
     double calculateSilhouette(Cluster cluster) {
@@ -104,10 +101,6 @@ class DecisionModel {
 
     public List<MicroCluster> getMicroClusters() {
         return microClusters;
-    }
-
-    public Optional<MicroCluster> getClosestMicroCluster(Sample sample) {
-        return MicroCluster.calculateClosestMicroCluster(sample, this.microClusters);
     }
 
 }

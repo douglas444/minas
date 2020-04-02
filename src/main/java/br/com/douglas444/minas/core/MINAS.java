@@ -2,6 +2,8 @@ package br.com.douglas444.minas.core;
 
 import br.com.douglas444.minas.config.ClusteringAlgorithmController;
 import br.com.douglas444.minas.config.Configuration;
+import br.com.douglas444.minas.config.MicroClusterPredictor;
+import br.com.douglas444.minas.config.SamplePredictor;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
@@ -13,34 +15,65 @@ import java.util.stream.Collectors;
 public class MINAS {
 
     private int timestamp;
-    private DecisionModel decisionModel;
-    private List<Sample> temporaryMemory;
-    private DecisionModel sleepMemory;
     private int noveltyCount;
-    private DynamicConfusionMatrix confusionMatrix;
-    private Configuration configuration;
+
+    private final DecisionModel decisionModel;
+    private final List<Sample> temporaryMemory;
+    private final DecisionModel sleepMemory;
+    private final DynamicConfusionMatrix confusionMatrix;
+
+    private final boolean feedbackNeeded;
+    private final int minSizeDN;
+    private final int minClusterSize;
+    private final int windowSize;
+    private final int clusterLifespan;
+    private final int sampleLifespan;
+    private final ClusteringAlgorithmController clusteringAlgorithm;
 
     public MINAS(List<Sample> trainSet, Configuration configuration) {
 
         this.timestamp = 0;
-        this.decisionModel = buildDecisionModel(trainSet, configuration.getClusteringAlgorithmController());
-        this.temporaryMemory = new ArrayList<>();
-        this.sleepMemory = new DecisionModel();
-
         this.noveltyCount = 0;
+        this.temporaryMemory = new ArrayList<>();
 
-        Set<Integer> knownLabels = new HashSet<>();
+        this.feedbackNeeded = configuration.isFeedbackNeeded();
+        this.minSizeDN = configuration.getMinSizeDN();
+        this.minClusterSize = configuration.getMinClusterSize();
+        this.windowSize = configuration.getWindowSize();
+        this.clusterLifespan = configuration.getMicroClusterLifespan();
+        this.sampleLifespan = configuration.getSampleLifespan();
+        this.clusteringAlgorithm = configuration.getMainClusteringAlgorithm();
+
+        this.decisionModel = buildDecisionModel(trainSet,
+                configuration.isIncrementallyUpdatable(),
+                configuration.getDecisionModelBuilderClusteringAlgorithm(),
+                configuration.getMainMicroClusterPredictor(),
+                configuration.getSamplePredictor());
+
+        this.sleepMemory = new DecisionModel(configuration.isIncrementallyUpdatable(),
+                configuration.getSleepMemoryMicroClusterPredictor(),
+                configuration.getSamplePredictor());
+
+        this.confusionMatrix = buildConfusionMatrix(trainSet);
+
+    }
+
+    private static DynamicConfusionMatrix buildConfusionMatrix(List<Sample> trainSet) {
+
+        final Set<Integer> knownLabels = new HashSet<>();
         trainSet.forEach(sample -> knownLabels.add(sample.getY()));
-        this.confusionMatrix = new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
+        return new DynamicConfusionMatrix(new ArrayList<>(knownLabels));
 
-        this.configuration = configuration;
     }
 
 
-    private static DecisionModel buildDecisionModel(List<Sample> trainSet, ClusteringAlgorithmController clusteringAlgorithmController) {
+    private static DecisionModel buildDecisionModel(List<Sample> trainSet, boolean incrementallyUpdatable,
+                                                    ClusteringAlgorithmController clusteringAlgorithm,
+                                                    MicroClusterPredictor microClusterPredictor,
+                                                    SamplePredictor samplePredictor) {
 
-        List<MicroCluster> microClusters = new ArrayList<>();
-        HashMap<Integer, List<Sample>> samplesByLabel = new HashMap<>();
+        final List<MicroCluster> microClusters = new ArrayList<>();
+        final HashMap<Integer, List<Sample>> samplesByLabel = new HashMap<>();
 
         trainSet.forEach(sample -> {
             samplesByLabel.putIfAbsent(sample.getY(), new ArrayList<>());
@@ -49,7 +82,7 @@ public class MINAS {
 
         samplesByLabel.forEach((key, value) -> {
 
-            List<Cluster> clusters = clusteringAlgorithmController.execute(value);
+            final List<Cluster> clusters = clusteringAlgorithm.execute(value);
 
             microClusters.addAll(clusters.stream()
                     .map(cluster -> new MicroCluster(cluster, key))
@@ -59,16 +92,15 @@ public class MINAS {
 
         microClusters.forEach(microCluster -> microCluster.setCategory(Category.KNOWN));
 
-        return new DecisionModel(microClusters);
+        return new DecisionModel(incrementallyUpdatable, microClusterPredictor, samplePredictor, microClusters);
     }
 
     private void detectNoveltyAndUpdate() {
 
         final Predicate<Cluster> isCohesive = cluster -> this.decisionModel.calculateSilhouette(cluster) > 0
-                && cluster.getSize() >= configuration.getMinClusterSize();
+                && cluster.getSize() >= this.minClusterSize;
 
-        List<Cluster> cohesiveClusters = configuration
-                .getClusteringAlgorithmController()
+        final List<Cluster> cohesiveClusters = clusteringAlgorithm
                 .execute(this.temporaryMemory)
                 .stream()
                 .filter(isCohesive)
@@ -77,11 +109,11 @@ public class MINAS {
 
         for (Cluster cohesiveCluster : cohesiveClusters) {
 
-            MicroCluster microCluster = new MicroCluster(cohesiveCluster);
-            Prediction prediction = this.decisionModel.predict(microCluster, configuration.getVl());
+            final MicroCluster microCluster = new MicroCluster(cohesiveCluster);
+            Prediction prediction = this.decisionModel.predict(microCluster);
 
             if (!prediction.isExplained()) {
-                prediction = this.sleepMemory.predict(microCluster, configuration.getVlSleep());
+                prediction = this.sleepMemory.predict(microCluster);
                 if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
                     this.sleepMemory.remove(prediction.getClosestMicroCluster().get());
                     this.decisionModel.merge(prediction.getClosestMicroCluster().get());
@@ -95,8 +127,12 @@ public class MINAS {
 
             } else {
 
-                boolean isNovel = Feedback.validateConceptEvolution(prediction, microCluster,
-                        cohesiveCluster.getSamples(), decisionModel.getMicroClusters());
+                boolean isNovel = true;
+
+                if (feedbackNeeded) {
+                    isNovel = Feedback.validateConceptEvolution(prediction, microCluster,
+                            cohesiveCluster.getSamples(), decisionModel.getMicroClusters());
+                }
 
                 if (isNovel) {
                     microCluster.setCategory(Category.NOVELTY);
@@ -121,10 +157,10 @@ public class MINAS {
     }
 
 
-    public Prediction predictAndUpdate(Sample sample) {
+    public Prediction predict(Sample sample) {
 
         sample.setT(this.timestamp);
-        Prediction prediction = this.decisionModel.predictAndUpdate(sample);
+        final Prediction prediction = this.decisionModel.predict(sample);
 
         if(prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
 
@@ -134,20 +170,20 @@ public class MINAS {
         } else {
             this.temporaryMemory.add(sample);
             this.confusionMatrix.addUnknown(sample.getY());
-            if (this.temporaryMemory.size() >= this.configuration.getMinSizeDN()) {
+            if (this.temporaryMemory.size() >= this.minSizeDN) {
                 this.detectNoveltyAndUpdate();
             }
         }
 
         ++this.timestamp;
 
-        if (this.timestamp % configuration.getWindowSize()== 0) {
+        if (this.timestamp % this.windowSize == 0) {
 
-            List<MicroCluster> inactiveMicroClusters = this.decisionModel
-                    .extractInactiveMicroClusters(this.timestamp, configuration.getClusterLifespan());
+            final List<MicroCluster> inactiveMicroClusters = this.decisionModel
+                    .extractInactiveMicroClusters(this.timestamp, clusterLifespan);
 
             this.sleepMemory.merge(inactiveMicroClusters);
-            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > configuration.getSampleLifespan());
+            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) > sampleLifespan);
 
         }
 

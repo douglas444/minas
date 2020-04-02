@@ -7,11 +7,11 @@ import br.com.douglas444.mltk.Sample;
 import java.util.List;
 import java.util.Optional;
 
-public class VL1 implements VL {
+public class MicroClusterPredictorType1 implements MicroClusterPredictor {
 
     private double thresholdMultiplier;
 
-    public VL1(double thresholdMultiplier) {
+    public MicroClusterPredictorType1(double thresholdMultiplier) {
         this.thresholdMultiplier = thresholdMultiplier;
     }
 
