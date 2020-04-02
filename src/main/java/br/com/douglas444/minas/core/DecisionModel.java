@@ -31,7 +31,7 @@ class DecisionModel {
             double distance = center.distance(sample);
             double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
-            if (distance <= microClusterStandardDeviation) {
+            if (distance <= 2 * microClusterStandardDeviation) {
                 return new Prediction(closestMicroCluster.get(), true);
             }
         }

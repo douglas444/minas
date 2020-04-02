@@ -1,6 +1,6 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.config.ClusteringAlgorithm;
+import br.com.douglas444.minas.config.ClusteringAlgorithmController;
 import br.com.douglas444.minas.config.Configuration;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.Cluster;
@@ -23,7 +23,7 @@ public class MINAS {
     public MINAS(List<Sample> trainSet, Configuration configuration) {
 
         this.timestamp = 0;
-        this.decisionModel = buildDecisionModel(trainSet, configuration.getClusteringAlgorithm());
+        this.decisionModel = buildDecisionModel(trainSet, configuration.getClusteringAlgorithmController());
         this.temporaryMemory = new ArrayList<>();
         this.sleepMemory = new DecisionModel();
 
@@ -37,7 +37,7 @@ public class MINAS {
     }
 
 
-    private static DecisionModel buildDecisionModel(List<Sample> trainSet, ClusteringAlgorithm clusteringAlgorithm) {
+    private static DecisionModel buildDecisionModel(List<Sample> trainSet, ClusteringAlgorithmController clusteringAlgorithmController) {
 
         List<MicroCluster> microClusters = new ArrayList<>();
         HashMap<Integer, List<Sample>> samplesByLabel = new HashMap<>();
@@ -49,7 +49,7 @@ public class MINAS {
 
         samplesByLabel.forEach((key, value) -> {
 
-            List<Cluster> clusters = clusteringAlgorithm.execute(value);
+            List<Cluster> clusters = clusteringAlgorithmController.execute(value);
 
             microClusters.addAll(clusters.stream()
                     .map(cluster -> new MicroCluster(cluster, key))
@@ -65,10 +65,10 @@ public class MINAS {
     private void detectNoveltyAndUpdate() {
 
         final Predicate<Cluster> isCohesive = cluster -> this.decisionModel.calculateSilhouette(cluster) > 0
-                && cluster.getSize() > configuration.getMinClusterSize();
+                && cluster.getSize() >= configuration.getMinClusterSize();
 
         List<Cluster> cohesiveClusters = configuration
-                .getClusteringAlgorithm()
+                .getClusteringAlgorithmController()
                 .execute(this.temporaryMemory)
                 .stream()
                 .filter(isCohesive)
@@ -81,7 +81,7 @@ public class MINAS {
             Prediction prediction = this.decisionModel.predict(microCluster, configuration.getVl());
 
             if (!prediction.isExplained()) {
-                prediction = this.sleepMemory.predict(microCluster, configuration.getVl());
+                prediction = this.sleepMemory.predict(microCluster, configuration.getVlSleep());
                 if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
                     this.sleepMemory.remove(prediction.getClosestMicroCluster().get());
                     this.decisionModel.merge(prediction.getClosestMicroCluster().get());

@@ -5,7 +5,7 @@ import br.com.douglas444.mltk.Sample;
 
 import java.util.List;
 
-public interface ClusteringAlgorithm {
+public interface ClusteringAlgorithmController {
 
     List<Cluster> execute(List<Sample> samples);
 

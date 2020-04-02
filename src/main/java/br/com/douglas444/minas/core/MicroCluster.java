@@ -53,6 +53,7 @@ public class MicroCluster {
             this.ls[i] += sample.getX()[i];
             this.ss[i] += sample.getX()[i] * sample.getX()[i];
         }
+
         ++this.n;
     }
 
@@ -69,10 +70,10 @@ public class MicroCluster {
         double sum = 0;
 
         for (int i = 0; i < this.ss.length; ++i) {
-            sum += Math.sqrt(this.ss[i]/this.n - ((this.ls[i]/this.n) * (this.ls[i]/this.n)));
+            sum += (this.ss[i] / this.n) - Math.pow(this.ls[i] / this.n, 2);
         }
 
-        return sum;
+        return Math.sqrt(sum);
 
     }
 

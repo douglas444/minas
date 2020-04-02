@@ -8,18 +8,20 @@ public class Configuration {
     private int clusterLifespan;
     private int sampleLifespan;
 
-    private ClusteringAlgorithm clusteringAlgorithm;
+    private ClusteringAlgorithmController clusteringAlgorithmController;
     private VL vl;
+    private VL vlSleep;
 
     public Configuration(int minSizeDN, int minClusterSize, int windowSize, int clusterLifespan, int sampleLifespan,
-                         ClusteringAlgorithm clusteringAlgorithm, VL vl) {
+                         ClusteringAlgorithmController clusteringAlgorithmController, VL vl, VL vlSleep) {
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
         this.windowSize = windowSize;
         this.clusterLifespan = clusterLifespan;
         this.sampleLifespan = sampleLifespan;
-        this.clusteringAlgorithm = clusteringAlgorithm;
+        this.clusteringAlgorithmController = clusteringAlgorithmController;
         this.vl = vl;
+        this.vlSleep = vlSleep;
     }
 
     public int getMinSizeDN() {
@@ -62,12 +64,12 @@ public class Configuration {
         this.sampleLifespan = sampleLifespan;
     }
 
-    public ClusteringAlgorithm getClusteringAlgorithm() {
-        return clusteringAlgorithm;
+    public ClusteringAlgorithmController getClusteringAlgorithmController() {
+        return clusteringAlgorithmController;
     }
 
-    public void setClusteringAlgorithm(ClusteringAlgorithm clusteringAlgorithm) {
-        this.clusteringAlgorithm = clusteringAlgorithm;
+    public void setClusteringAlgorithmController(ClusteringAlgorithmController clusteringAlgorithmController) {
+        this.clusteringAlgorithmController = clusteringAlgorithmController;
     }
 
     public VL getVl() {
@@ -76,5 +78,13 @@ public class Configuration {
 
     public void setVl(VL vl) {
         this.vl = vl;
+    }
+
+    public VL getVlSleep() {
+        return vlSleep;
+    }
+
+    public void setVlSleep(VL vlSleep) {
+        this.vlSleep = vlSleep;
     }
 }
