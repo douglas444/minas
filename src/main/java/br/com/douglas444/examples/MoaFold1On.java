@@ -22,7 +22,8 @@ public class MoaFold1On {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final boolean INCREMENTALLY_UPDATABLE = false;
     private static final boolean FEEDBACK_NEEDED = false;
-    private static final KMeansController K_MEANS_CONTROLLER = new KMeansController(100);
+    private static final KMeansController INITIAL_CLUSTERING_ALG = new KMeansController(100);
+    private static final KMeansController MAIN_CLUSTERING_ALG = new KMeansController(100);
     private static final double THRESHOLD_MULTIPLIER = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SLEEP = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2.0;
@@ -41,8 +42,8 @@ public class MoaFold1On {
                 SAMPLE_LIFESPAN,
                 INCREMENTALLY_UPDATABLE,
                 FEEDBACK_NEEDED,
-                K_MEANS_CONTROLLER,
-                K_MEANS_CONTROLLER,
+                INITIAL_CLUSTERING_ALG,
+                MAIN_CLUSTERING_ALG,
                 MAIN_MICRO_CLUSTER_PREDICTOR,
                 SLEEP_MICRO_CLUSTER_PREDICTOR,
                 SAMPLE_PREDICTOR);
