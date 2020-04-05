@@ -16,8 +16,9 @@ public class MicroCluster {
     private double[] ls;
     private double[] ss;
 
-    public MicroCluster(Cluster cluster) {
+    public MicroCluster(Cluster cluster, int timestamp) {
 
+        this.timestamp = timestamp;
         final int dimensions = cluster.getSamples().get(0).getX().length;
         final List<Sample> samples = cluster.getSamples();
 
@@ -29,8 +30,9 @@ public class MicroCluster {
     }
 
 
-    public MicroCluster(Cluster cluster, int label) {
+    public MicroCluster(Cluster cluster, int label, int timestamp) {
 
+        this.timestamp = timestamp;
         this.label = label;
 
         final int dimensions = cluster.getSamples().get(0).getX().length;
@@ -44,10 +46,6 @@ public class MicroCluster {
     }
 
     public void update(Sample sample) {
-
-        if (this.timestamp < sample.getT()) {
-            this.timestamp = sample.getT();
-        }
 
         for (int i = 0; i < sample.getX().length; ++i) {
             this.ls[i] += sample.getX()[i];
@@ -96,6 +94,10 @@ public class MicroCluster {
         } else {
             return Optional.empty();
         }
+    }
+
+    public void setTimestamp(int timestamp) {
+        this.timestamp = timestamp;
     }
 
     public int getTimestamp() {

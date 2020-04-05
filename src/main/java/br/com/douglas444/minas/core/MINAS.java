@@ -80,13 +80,13 @@ public class MINAS {
             samplesByLabel.get(sample.getY()).add(sample);
         });
 
-        samplesByLabel.forEach((key, value) -> {
+        samplesByLabel.forEach((label, samples) -> {
 
-            final List<Cluster> clusters = clusteringAlgorithm.execute(value);
+            final List<Cluster> clusters = clusteringAlgorithm.execute(samples);
 
-            microClusters.addAll(clusters.stream()
-                    .map(cluster -> new MicroCluster(cluster, key))
-                    .collect(Collectors.toList()));
+            clusters.stream()
+                    .map(cluster -> new MicroCluster(cluster, label, 0))
+                    .forEach(microClusters::add);
 
         });
 
@@ -109,7 +109,7 @@ public class MINAS {
 
         for (Cluster cohesiveCluster : cohesiveClusters) {
 
-            final MicroCluster microCluster = new MicroCluster(cohesiveCluster);
+            final MicroCluster microCluster = new MicroCluster(cohesiveCluster, this.timestamp);
             Prediction prediction = this.decisionModel.predict(microCluster);
 
             if (!prediction.isExplained()) {

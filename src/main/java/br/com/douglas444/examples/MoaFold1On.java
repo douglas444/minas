@@ -19,14 +19,14 @@ public class MoaFold1On {
     private static final int MIN_CLUSTER_SIZE = 20;
     private static final int WINDOW_SIZE = 4000;
     private static final int MICRO_CLUSTER_LIFESPAN = 4000;
-    private static final int SAMPLE_LIFESPAN = 4000;
+    private static final int SAMPLE_LIFESPAN = 10000;
     private static final boolean INCREMENTALLY_UPDATABLE = false;
     private static final boolean FEEDBACK_NEEDED = false;
     private static final KMeansController INITIAL_CLUSTERING_ALG = new KMeansController(100);
     private static final KMeansController MAIN_CLUSTERING_ALG = new KMeansController(100);
     private static final double THRESHOLD_MULTIPLIER = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SLEEP = 1.1;
-    private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2.0;
+    private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2;
     private static final int TRAIN_SET_SIZE = 9000;
     private static final String DATA_FILE = "./datasets/moa_fold1_on.data";
     private static final String SEPARATOR = ",";
@@ -114,7 +114,7 @@ public class MoaFold1On {
             double distance = center.distance(sample);
             double microClusterStandardDeviation = closestMicroCluster.get().calculateStandardDeviation();
 
-            if (distance <= THRESHOLD_MULTIPLIER_SAMPLE * microClusterStandardDeviation) {
+            if (distance <= microClusterStandardDeviation * THRESHOLD_MULTIPLIER_SAMPLE) {
                 return new Prediction(closestMicroCluster.get(), true);
             }
         }
