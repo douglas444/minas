@@ -21,9 +21,9 @@ public class MoaFold1On {
     private static final int MICRO_CLUSTER_LIFESPAN = 4000;
     private static final int SAMPLE_LIFESPAN = 10000;
     private static final boolean INCREMENTALLY_UPDATABLE = false;
-    private static final boolean FEEDBACK_NEEDED = false;
-    private static final KMeansController INITIAL_CLUSTERING_ALG = new KMeansController(100);
-    private static final KMeansController MAIN_CLUSTERING_ALG = new KMeansController(100);
+    private static final boolean TURN_FEEDBACK_ON = false;
+    private static final KMeansController OFFLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
+    private static final KMeansController ONLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
     private static final double THRESHOLD_MULTIPLIER = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SLEEP = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2;
@@ -41,9 +41,9 @@ public class MoaFold1On {
                 MICRO_CLUSTER_LIFESPAN,
                 SAMPLE_LIFESPAN,
                 INCREMENTALLY_UPDATABLE,
-                FEEDBACK_NEEDED,
-                INITIAL_CLUSTERING_ALG,
-                MAIN_CLUSTERING_ALG,
+                TURN_FEEDBACK_ON,
+                OFFLINE_PHASE_CLUSTERING_ALG,
+                ONLINE_PHASE_CLUSTERING_ALG,
                 MAIN_MICRO_CLUSTER_PREDICTOR,
                 SLEEP_MICRO_CLUSTER_PREDICTOR,
                 SAMPLE_PREDICTOR);

@@ -4,6 +4,7 @@ import br.com.douglas444.minas.config.ClusteringAlgorithmController;
 import br.com.douglas444.minas.config.Configuration;
 import br.com.douglas444.minas.config.MicroClusterPredictor;
 import br.com.douglas444.minas.config.SamplePredictor;
+import br.com.douglas444.minas.feedback.Context;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.Cluster;
 import br.com.douglas444.mltk.DynamicConfusionMatrix;
@@ -22,7 +23,6 @@ public class MINAS {
     private final DecisionModel sleepMemory;
     private final DynamicConfusionMatrix confusionMatrix;
 
-    private final boolean feedbackNeeded;
     private final int minSizeDN;
     private final int minClusterSize;
     private final int windowSize;
@@ -36,17 +36,18 @@ public class MINAS {
         this.noveltyCount = 0;
         this.temporaryMemory = new ArrayList<>();
 
-        this.feedbackNeeded = configuration.isFeedbackNeeded();
+        Feedback.on = configuration.getTurnFeedbackOn();
+
         this.minSizeDN = configuration.getMinSizeDN();
         this.minClusterSize = configuration.getMinClusterSize();
         this.windowSize = configuration.getWindowSize();
         this.clusterLifespan = configuration.getMicroClusterLifespan();
         this.sampleLifespan = configuration.getSampleLifespan();
-        this.clusteringAlgorithm = configuration.getMainClusteringAlgorithm();
+        this.clusteringAlgorithm = configuration.getOnlineClusteringAlgorithm();
 
         this.decisionModel = buildDecisionModel(trainSet,
                 configuration.isIncrementallyUpdatable(),
-                configuration.getDecisionModelBuilderClusteringAlgorithm(),
+                configuration.getOfflineClusteringAlgorithm(),
                 configuration.getMainMicroClusterPredictor(),
                 configuration.getSamplePredictor());
 
@@ -110,39 +111,49 @@ public class MINAS {
         for (Cluster cohesiveCluster : cohesiveClusters) {
 
             final MicroCluster microCluster = new MicroCluster(cohesiveCluster, this.timestamp);
-            Prediction prediction = this.decisionModel.predict(microCluster);
+            final Prediction prediction = this.decisionModel.predict(microCluster);
 
-            if (!prediction.isExplained()) {
-                prediction = this.sleepMemory.predict(microCluster);
-                if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
-                    this.sleepMemory.remove(prediction.getClosestMicroCluster().get());
-                    this.decisionModel.merge(prediction.getClosestMicroCluster().get());
-                }
-            }
+            final Context context = new Context(prediction, microCluster, cohesiveCluster.getSamples(),
+                    this.decisionModel.getMicroClusters());
 
-            if (prediction.isExplained()) {
+            prediction.ifExplainedOrElse((closestMicroCluster) -> {
 
-                microCluster.setCategory(prediction.getClosestMicroCluster().get().getCategory());
-                microCluster.setLabel(prediction.getClosestMicroCluster().get().getLabel());
-
-            } else {
-
-                boolean isNovel = true;
-
-                if (feedbackNeeded) {
-                    isNovel = Feedback.validateConceptEvolution(prediction, microCluster,
-                            cohesiveCluster.getSamples(), decisionModel.getMicroClusters());
-                }
-
-                if (isNovel) {
+                if (Feedback.validateConceptDrift(context)) {
+                    microCluster.setCategory(closestMicroCluster.getCategory());
+                    microCluster.setLabel(closestMicroCluster.getLabel());
+                } else {
                     microCluster.setCategory(Category.NOVELTY);
                     microCluster.setLabel(this.noveltyCount);
                     ++this.noveltyCount;
-                } else if (prediction.getClosestMicroCluster().isPresent()) {
-                    microCluster.setCategory(prediction.getClosestMicroCluster().get().getCategory());
-                    microCluster.setLabel(prediction.getClosestMicroCluster().get().getLabel());
                 }
-            }
+
+            }, () -> {
+
+                final Prediction sleepPrediction = this.sleepMemory.predict(microCluster);
+
+                sleepPrediction.ifExplainedOrElse((closestMicroCluster) -> {
+                    if (Feedback.validateConceptDrift(context)) {
+                        this.sleepMemory.remove(closestMicroCluster);
+                        this.decisionModel.merge(closestMicroCluster);
+                        microCluster.setCategory(closestMicroCluster.getCategory());
+                        microCluster.setLabel(closestMicroCluster.getLabel());
+                    } else {
+                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setLabel(this.noveltyCount);
+                        ++this.noveltyCount;
+                    }
+                }, (closestMicroCluster) -> {
+                    if (Feedback.validateConceptEvolution(context)) {
+                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setLabel(this.noveltyCount);
+                        ++this.noveltyCount;
+                    } else {
+                        microCluster.setCategory(closestMicroCluster.getCategory());
+                        microCluster.setLabel(closestMicroCluster.getLabel());
+                    }
+                });
+
+            });
 
             for (Sample sample : cohesiveCluster.getSamples()) {
 
@@ -162,18 +173,20 @@ public class MINAS {
         sample.setT(this.timestamp);
         final Prediction prediction = this.decisionModel.predict(sample);
 
-        if(prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
+        prediction.ifExplainedOrElse((closestMicroCluster) -> {
 
-            this.confusionMatrix.addPrediction(sample.getY(), prediction.getClosestMicroCluster().get().getLabel(),
-                    prediction.getClosestMicroCluster().get().getCategory() == Category.NOVELTY);
+            this.confusionMatrix.addPrediction(sample.getY(), closestMicroCluster.getLabel(),
+                    closestMicroCluster.getCategory() == Category.NOVELTY);
 
-        } else {
+        }, () -> {
+
             this.temporaryMemory.add(sample);
             this.confusionMatrix.addUnknown(sample.getY());
             if (this.temporaryMemory.size() >= this.minSizeDN) {
                 this.detectNoveltyAndUpdate();
             }
-        }
+
+        });
 
         ++this.timestamp;
 

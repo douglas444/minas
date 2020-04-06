@@ -8,35 +8,35 @@ public class Configuration {
     private int microClusterLifespan;
     private int sampleLifespan;
     private boolean incrementallyUpdatable;
-    private boolean feedbackNeeded;
+    private boolean turnFeedbackOn;
 
-    private ClusteringAlgorithmController mainClusteringAlgorithm;
-    private ClusteringAlgorithmController decisionModelBuilderClusteringAlgorithm;
+    private ClusteringAlgorithmController onlineClusteringAlgorithm;
+    private ClusteringAlgorithmController offlineClusteringAlgorithm;
 
     private MicroClusterPredictor mainMicroClusterPredictor;
     private MicroClusterPredictor sleepMemoryMicroClusterPredictor;
     private SamplePredictor samplePredictor;
 
     public Configuration(int minSizeDN, int minClusterSize, int windowSize, int microClusterLifespan,
-                         int sampleLifespan, boolean incrementallyUpdatable, boolean feedbackNeeded,
-                         ClusteringAlgorithmController mainClusteringAlgorithm,
-                         ClusteringAlgorithmController decisionModelBuilderClusteringAlgorithm,
+                         int sampleLifespan, boolean incrementallyUpdatable, boolean turnFeedbackOn,
+                         ClusteringAlgorithmController onlineClusteringAlgorithm,
+                         ClusteringAlgorithmController offlineClusteringAlgorithm,
                          MicroClusterPredictor mainMicroClusterPredictor,
                          MicroClusterPredictor sleepMemoryMicroClusterPredictor,
                          SamplePredictor samplePredictor) {
 
-        this.feedbackNeeded = feedbackNeeded;
+        this.turnFeedbackOn = turnFeedbackOn;
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
         this.windowSize = windowSize;
         this.microClusterLifespan = microClusterLifespan;
         this.sampleLifespan = sampleLifespan;
-        this.mainClusteringAlgorithm = mainClusteringAlgorithm;
+        this.onlineClusteringAlgorithm = onlineClusteringAlgorithm;
         this.mainMicroClusterPredictor = mainMicroClusterPredictor;
         this.sleepMemoryMicroClusterPredictor = sleepMemoryMicroClusterPredictor;
         this.samplePredictor = samplePredictor;
         this.incrementallyUpdatable = incrementallyUpdatable;
-        this.decisionModelBuilderClusteringAlgorithm = decisionModelBuilderClusteringAlgorithm;
+        this.offlineClusteringAlgorithm = offlineClusteringAlgorithm;
     }
 
     public int getMinSizeDN() {
@@ -59,8 +59,8 @@ public class Configuration {
         return sampleLifespan;
     }
 
-    public ClusteringAlgorithmController getMainClusteringAlgorithm() {
-        return mainClusteringAlgorithm;
+    public ClusteringAlgorithmController getOnlineClusteringAlgorithm() {
+        return onlineClusteringAlgorithm;
     }
 
     public MicroClusterPredictor getMainMicroClusterPredictor() {
@@ -80,11 +80,11 @@ public class Configuration {
         return samplePredictor;
     }
 
-    public ClusteringAlgorithmController getDecisionModelBuilderClusteringAlgorithm() {
-        return decisionModelBuilderClusteringAlgorithm;
+    public ClusteringAlgorithmController getOfflineClusteringAlgorithm() {
+        return offlineClusteringAlgorithm;
     }
 
-    public boolean isFeedbackNeeded() {
-        return feedbackNeeded;
+    public boolean getTurnFeedbackOn() {
+        return turnFeedbackOn;
     }
 }

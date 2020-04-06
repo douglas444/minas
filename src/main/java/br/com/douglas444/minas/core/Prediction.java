@@ -1,6 +1,7 @@
 package br.com.douglas444.minas.core;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class Prediction {
 
@@ -8,12 +9,43 @@ public class Prediction {
     private boolean explained;
 
     public Prediction(MicroCluster closestMicroCluster, boolean explained) {
+
+        assert !explained || closestMicroCluster != null;
+
         this.closestMicroCluster = closestMicroCluster;
         this.explained = explained;
     }
 
     public boolean isExplained() {
         return explained;
+    }
+
+    public void ifExplained(Consumer<MicroCluster> action) {
+
+        if (explained) {
+            action.accept(this.closestMicroCluster);
+        }
+
+    }
+
+    public void ifExplainedOrElse(Consumer<MicroCluster> consumer, Runnable runnable) {
+
+        if (explained) {
+            consumer.accept(this.closestMicroCluster);
+        } else {
+            runnable.run();
+        }
+
+    }
+
+    public void ifExplainedOrElse(Consumer<MicroCluster> consumer1, Consumer<MicroCluster> consumer2) {
+
+        if (explained) {
+            consumer1.accept(this.closestMicroCluster);
+        } else {
+            consumer2.accept(this.closestMicroCluster);
+        }
+
     }
 
     public Optional<Integer> getLabel() {

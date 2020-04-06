@@ -96,6 +96,27 @@ public class MicroCluster {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MicroCluster that = (MicroCluster) o;
+        return timestamp == that.timestamp &&
+                label == that.label &&
+                n == that.n &&
+                category == that.category &&
+                Arrays.equals(ls, that.ls) &&
+                Arrays.equals(ss, that.ss);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(timestamp, label, category, n);
+        result = 31 * result + Arrays.hashCode(ls);
+        result = 31 * result + Arrays.hashCode(ss);
+        return result;
+    }
+
     public void setTimestamp(int timestamp) {
         this.timestamp = timestamp;
     }

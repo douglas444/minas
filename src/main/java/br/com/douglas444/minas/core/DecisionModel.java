@@ -38,12 +38,12 @@ class DecisionModel {
 
         Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
 
-        if (prediction.getClosestMicroCluster().isPresent() && prediction.isExplained()) {
-            prediction.getClosestMicroCluster().get().setTimestamp(sample.getT());
+        prediction.ifExplained((closestMicroCluster) -> {
+            closestMicroCluster.setTimestamp(sample.getT());
             if (incrementallyUpdatable) {
-                prediction.getClosestMicroCluster().get().update(sample);
+                closestMicroCluster.update(sample);
             }
-        }
+        });
 
         return prediction;
     }

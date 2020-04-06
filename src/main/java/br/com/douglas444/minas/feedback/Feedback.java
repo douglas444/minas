@@ -2,49 +2,91 @@ package br.com.douglas444.minas.feedback;
 
 import br.com.douglas444.minas.core.Category;
 import br.com.douglas444.minas.core.MicroCluster;
-import br.com.douglas444.minas.core.Prediction;
 import br.com.douglas444.mltk.Sample;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Feedback {
 
-    public static boolean validateConceptEvolution(Prediction prediction, MicroCluster concept, List<Sample> samples,
-                                             List<MicroCluster> modelMicroClusters) {
+    public static boolean on = false;
 
-        if (estimateBayesError(concept.calculateCenter(), modelMicroClusters) < 0.5) {
+    private static boolean checkPreConditions(Context context) {
 
-            final Sample sample = getMostInformativeSample(samples, modelMicroClusters);
+        return on && context.getPrediction().getClosestMicroCluster().isPresent() &&
+                context.getPrediction().getClosestMicroCluster().get().getCategory() != Category.NOVELTY;
 
-            if (prediction.getClosestMicroCluster().isPresent()) {
-                final MicroCluster closest = prediction.getClosestMicroCluster().get();
+    }
+
+    public static boolean validateConceptDrift(Context context) {
+
+        if (!checkPreConditions(context)) {
+            return true;
+        }
+
+        Set<MicroCluster> knownConcepts = new HashSet<>(context.getKnownConcepts());
+        knownConcepts.add(context.getPrediction().getClosestMicroCluster().get());
+
+        if (estimateBayesError(context.getConcept().calculateCenter(), knownConcepts) > 0.5) {
+
+            final Sample sample = getLastInformativeSample(context.getSamples(), knownConcepts);
+
+            if (context.getPrediction().getClosestMicroCluster().isPresent()) {
+                final MicroCluster closest = context.getPrediction().getClosestMicroCluster().get();
                 final Integer label = Oracle.label(sample);
-                return !(closest.getCategory() == Category.KNOWN && label == closest.getLabel());
+                return label == closest.getLabel();
             }
         }
         return true;
     }
 
-    private static Sample getMostInformativeSample(List<Sample> samples, List<MicroCluster> microClusters) {
+    public static boolean validateConceptEvolution(Context context) {
 
-        Sample maxRiskSample = samples.get(0);
-        double maxRisk = 0;
-
-        for (Sample sample : samples) {
-            final double risk = estimateBayesError(sample, microClusters);
-            if (risk > maxRisk) {
-                maxRiskSample = sample;
-                maxRisk = risk;
-            }
+        if (!checkPreConditions(context)) {
+            return true;
         }
 
-        return maxRiskSample;
+        Set<MicroCluster> knownConcepts = new HashSet<>(context.getKnownConcepts());
+        knownConcepts.add(context.getPrediction().getClosestMicroCluster().get());
+
+        if (estimateBayesError(context.getConcept().calculateCenter(), knownConcepts) < 0.8) {
+
+            final Sample sample = getMostInformativeSample(context.getSamples(), knownConcepts);
+
+            if (context.getPrediction().getClosestMicroCluster().isPresent()) {
+                final MicroCluster closest = context.getPrediction().getClosestMicroCluster().get();
+                final Integer label = Oracle.label(sample);
+                return label != closest.getLabel();
+            }
+        }
+        return true;
     }
 
+    private static Sample getMostInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
 
-    private static double estimateBayesError(Sample target, List<MicroCluster> microClusters) {
+        assert samples != null && samples.size() > 0;
+
+        return samples.stream().sorted((sample1, sample2) -> {
+            double e1 = estimateBayesError(sample1, microClusters);
+            double e2 = estimateBayesError(sample2, microClusters);
+            return Double.compare(e1, e2);
+        }).collect(Collectors.toList()).get(samples.size() - 1);
+
+    }
+
+    private static Sample getLastInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
+
+        assert samples != null && samples.size() > 0;
+
+        return samples.stream().sorted((sample1, sample2) -> {
+            double e1 = estimateBayesError(sample1, microClusters);
+            double e2 = estimateBayesError(sample2, microClusters);
+            return Double.compare(e1, e2);
+        }).collect(Collectors.toList()).get(0);
+
+    }
+
+    private static double estimateBayesError(Sample target, Set<MicroCluster> microClusters) {
 
         final HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
         microClusters.forEach(microCluster -> {
