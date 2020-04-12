@@ -9,57 +9,45 @@ import java.util.stream.Collectors;
 
 public class Feedback {
 
-    public static boolean on = false;
+    private static boolean enabled = false;
 
-    private static boolean checkPreConditions(Context context) {
+    public static boolean validateConceptDrift(MicroCluster closestConcept, MicroCluster concept,
+                                               List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
 
-        return on && context.getPrediction().getClosestMicroCluster().isPresent() &&
-                context.getPrediction().getClosestMicroCluster().get().getCategory() != Category.NOVELTY;
-
-    }
-
-    public static boolean validateConceptDrift(Context context) {
-
-        if (!checkPreConditions(context)) {
+        if (!enabled || closestConcept.getCategory() == Category.NOVELTY) {
             return true;
         }
 
-        Set<MicroCluster> knownConcepts = new HashSet<>(context.getKnownConcepts());
-        knownConcepts.add(context.getPrediction().getClosestMicroCluster().get());
+        Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
+        concepts.add(closestConcept);
 
-        if (estimateBayesError(context.getConcept().calculateCenter(), knownConcepts) > 0.5) {
-
-            final Sample sample = getLastInformativeSample(context.getSamples(), knownConcepts);
-
-            if (context.getPrediction().getClosestMicroCluster().isPresent()) {
-                final MicroCluster closest = context.getPrediction().getClosestMicroCluster().get();
-                final Integer label = Oracle.label(sample);
-                return label == closest.getLabel();
-            }
+        if (estimateBayesError(concept.calculateCenter(), concepts) > 0.5) {
+            final Sample sample = getMostInformativeSample(samples, concepts);
+            final Integer label = Oracle.label(sample);
+            return label == closestConcept.getLabel();
         }
+
         return true;
     }
 
-    public static boolean validateConceptEvolution(Context context) {
+    public static boolean validateConceptEvolution(MicroCluster closestConcept, MicroCluster concept,
+                                                   List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
 
-        if (!checkPreConditions(context)) {
+        if (!enabled || closestConcept.getCategory() == Category.NOVELTY) {
             return true;
         }
 
-        Set<MicroCluster> knownConcepts = new HashSet<>(context.getKnownConcepts());
-        knownConcepts.add(context.getPrediction().getClosestMicroCluster().get());
+        Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
+        concepts.add(closestConcept);
 
-        if (estimateBayesError(context.getConcept().calculateCenter(), knownConcepts) < 0.8) {
-
-            final Sample sample = getMostInformativeSample(context.getSamples(), knownConcepts);
-
-            if (context.getPrediction().getClosestMicroCluster().isPresent()) {
-                final MicroCluster closest = context.getPrediction().getClosestMicroCluster().get();
-                final Integer label = Oracle.label(sample);
-                return label != closest.getLabel();
-            }
+        if (estimateBayesError(concept.calculateCenter(), concepts) < 0.8) {
+            final Sample sample = getLessInformativeSample(samples, concepts);
+            final Integer label = Oracle.label(sample);
+            return label != closestConcept.getLabel();
         }
+
         return true;
+
     }
 
     private static Sample getMostInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
@@ -74,7 +62,7 @@ public class Feedback {
 
     }
 
-    private static Sample getLastInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
+    private static Sample getLessInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
 
         assert samples != null && samples.size() > 0;
 
@@ -115,5 +103,13 @@ public class Feedback {
 
         return 1 - (n/d);
 
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static void setEnabled(boolean enabled) {
+        Feedback.enabled = enabled;
     }
 }

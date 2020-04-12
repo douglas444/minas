@@ -45,6 +45,22 @@ public class MicroCluster {
         samples.forEach(this::update);
     }
 
+    public MicroCluster(Cluster cluster, int label, int timestamp, Category category) {
+
+        this.timestamp = timestamp;
+        this.label = label;
+        this.category = category;
+
+        final int dimensions = cluster.getSamples().get(0).getX().length;
+        final List<Sample> samples = cluster.getSamples();
+
+        this.n = 0;
+        this.ls = new double[dimensions];
+        this.ss = new double[dimensions];
+
+        samples.forEach(this::update);
+    }
+
     public void update(Sample sample) {
 
         for (int i = 0; i < sample.getX().length; ++i) {

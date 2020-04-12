@@ -19,8 +19,8 @@ public class MoaFold1On {
     private static final int MIN_CLUSTER_SIZE = 20;
     private static final int WINDOW_SIZE = 4000;
     private static final int MICRO_CLUSTER_LIFESPAN = 4000;
-    private static final int SAMPLE_LIFESPAN = 10000;
-    private static final boolean INCREMENTALLY_UPDATABLE = false;
+    private static final int SAMPLE_LIFESPAN = 4000;
+    private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
     private static final boolean TURN_FEEDBACK_ON = false;
     private static final KMeansController OFFLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
     private static final KMeansController ONLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
@@ -40,7 +40,7 @@ public class MoaFold1On {
                 WINDOW_SIZE,
                 MICRO_CLUSTER_LIFESPAN,
                 SAMPLE_LIFESPAN,
-                INCREMENTALLY_UPDATABLE,
+                INCREMENTALLY_UPDATE_DECISION_MODEL,
                 TURN_FEEDBACK_ON,
                 OFFLINE_PHASE_CLUSTERING_ALG,
                 ONLINE_PHASE_CLUSTERING_ALG,
@@ -52,7 +52,7 @@ public class MoaFold1On {
         List<Sample> trainSet = fileReader.next(TRAIN_SET_SIZE);
         MINASController minasController = new MINASController(trainSet, configuration);
 
-        DSRunnable.run(minasController, fileReader);
+        DSRunnable.run(minasController, fileReader, true,1);
 
     }
 

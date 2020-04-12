@@ -38,12 +38,21 @@ public class Prediction {
 
     }
 
-    public void ifExplainedOrElse(Consumer<MicroCluster> consumer1, Consumer<MicroCluster> consumer2) {
+    public void ifExplainedOrElse(Consumer<MicroCluster> consumer1, Consumer<Optional<MicroCluster>> consumer2) {
 
         if (explained) {
             consumer1.accept(this.closestMicroCluster);
         } else {
-            consumer2.accept(this.closestMicroCluster);
+
+            Optional<MicroCluster> argument;
+
+            if (this.closestMicroCluster == null) {
+                argument = Optional.empty();
+            } else {
+                argument = Optional.of(this.closestMicroCluster);
+            }
+
+            consumer2.accept(argument);
         }
 
     }

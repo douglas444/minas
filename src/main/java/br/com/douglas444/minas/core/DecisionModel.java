@@ -11,24 +11,24 @@ import java.util.stream.Collectors;
 
 class DecisionModel {
 
-    private boolean incrementallyUpdatable;
+    private boolean incrementallyUpdate;
     private MicroClusterPredictor microClusterPredictor;
     private SamplePredictor samplePredictor;
     private List<MicroCluster> microClusters;
 
-    public DecisionModel(boolean incrementallyUpdatable, MicroClusterPredictor microClusterPredictor,
+    public DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
                          SamplePredictor samplePredictor) {
 
-        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.incrementallyUpdate = incrementallyUpdate;
         this.microClusterPredictor = microClusterPredictor;
         this.samplePredictor = samplePredictor;
         this.microClusters = new ArrayList<>();
     }
 
-    public DecisionModel(boolean incrementallyUpdatable, MicroClusterPredictor microClusterPredictor,
+    public DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
                          SamplePredictor samplePredictor, List<MicroCluster> microClusters) {
 
-        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.incrementallyUpdate = incrementallyUpdate;
         this.microClusterPredictor = microClusterPredictor;
         this.samplePredictor = samplePredictor;
         this.microClusters = new ArrayList<>(microClusters);
@@ -40,7 +40,7 @@ class DecisionModel {
 
         prediction.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
-            if (incrementallyUpdatable) {
+            if (incrementallyUpdate) {
                 closestMicroCluster.update(sample);
             }
         });
@@ -72,9 +72,7 @@ class DecisionModel {
             b = Double.MAX_VALUE;
         }
 
-
         return (b - a) / Math.max(b, a);
-
 
     }
 
@@ -91,6 +89,7 @@ class DecisionModel {
     }
 
     List<MicroCluster> extractInactiveMicroClusters(int timestamp, int lifespan) {
+
 
         List<MicroCluster> inactiveMicroClusters = this.microClusters
                 .stream()

@@ -7,7 +7,7 @@ public class Configuration {
     private int windowSize;
     private int microClusterLifespan;
     private int sampleLifespan;
-    private boolean incrementallyUpdatable;
+    private boolean incrementallyUpdateDecisionModel;
     private boolean turnFeedbackOn;
 
     private ClusteringAlgorithmController onlineClusteringAlgorithm;
@@ -18,7 +18,7 @@ public class Configuration {
     private SamplePredictor samplePredictor;
 
     public Configuration(int minSizeDN, int minClusterSize, int windowSize, int microClusterLifespan,
-                         int sampleLifespan, boolean incrementallyUpdatable, boolean turnFeedbackOn,
+                         int sampleLifespan, boolean incrementallyUpdateDecisionModel, boolean turnFeedbackOn,
                          ClusteringAlgorithmController onlineClusteringAlgorithm,
                          ClusteringAlgorithmController offlineClusteringAlgorithm,
                          MicroClusterPredictor mainMicroClusterPredictor,
@@ -35,7 +35,7 @@ public class Configuration {
         this.mainMicroClusterPredictor = mainMicroClusterPredictor;
         this.sleepMemoryMicroClusterPredictor = sleepMemoryMicroClusterPredictor;
         this.samplePredictor = samplePredictor;
-        this.incrementallyUpdatable = incrementallyUpdatable;
+        this.incrementallyUpdateDecisionModel = incrementallyUpdateDecisionModel;
         this.offlineClusteringAlgorithm = offlineClusteringAlgorithm;
     }
 
@@ -71,8 +71,8 @@ public class Configuration {
         return sleepMemoryMicroClusterPredictor;
     }
 
-    public boolean isIncrementallyUpdatable() {
-        return incrementallyUpdatable;
+    public boolean isIncrementallyUpdateDecisionModel() {
+        return incrementallyUpdateDecisionModel;
     }
 
 
