@@ -22,8 +22,8 @@ public class MoaFold1On {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
     private static final boolean TURN_FEEDBACK_ON = false;
-    private static final KMeansController OFFLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
-    private static final KMeansController ONLINE_PHASE_CLUSTERING_ALG = new KMeansController(100);
+    private static final KMeansController OFFLINE_PHASE_CLUSTERING_ALG = new KMeansController(100, 0);
+    private static final KMeansController ONLINE_PHASE_CLUSTERING_ALG = new KMeansController(100, 0);
     private static final double THRESHOLD_MULTIPLIER = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SLEEP = 1.1;
     private static final double THRESHOLD_MULTIPLIER_SAMPLE = 2;

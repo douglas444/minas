@@ -8,14 +8,16 @@ import java.util.List;
 public class KMeansController implements ClusteringAlgorithmController {
 
     private int k;
+    private int seed;
 
-    public KMeansController(int k) {
+    public KMeansController(int k, int seed) {
         this.k = k;
+        this.seed = seed;
     }
 
     @Override
     public List<Cluster> execute(List<Sample> samples) {
-        KMeans kMeans = new KMeans(samples, k);
+        KMeans kMeans = new KMeans(samples, this.k, this.seed);
         return kMeans.fit();
     }
 
