@@ -25,15 +25,6 @@ class DecisionModel {
         this.microClusters = new ArrayList<>();
     }
 
-    public DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
-                         SamplePredictor samplePredictor, List<MicroCluster> microClusters) {
-
-        this.incrementallyUpdate = incrementallyUpdate;
-        this.microClusterPredictor = microClusterPredictor;
-        this.samplePredictor = samplePredictor;
-        this.microClusters = new ArrayList<>(microClusters);
-    }
-
     Prediction predict(Sample sample) {
 
         Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);

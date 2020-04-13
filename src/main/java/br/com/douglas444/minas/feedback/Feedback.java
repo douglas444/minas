@@ -9,12 +9,10 @@ import java.util.stream.Collectors;
 
 public class Feedback {
 
-    private static boolean enabled = false;
-
     public static boolean validateConceptDrift(MicroCluster closestConcept, MicroCluster concept,
                                                List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
 
-        if (!enabled || closestConcept.getCategory() == Category.NOVELTY) {
+        if (closestConcept.getCategory() == Category.NOVELTY) {
             return true;
         }
 
@@ -33,7 +31,7 @@ public class Feedback {
     public static boolean validateConceptEvolution(MicroCluster closestConcept, MicroCluster concept,
                                                    List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
 
-        if (!enabled || closestConcept.getCategory() == Category.NOVELTY) {
+        if (closestConcept.getCategory() == Category.NOVELTY) {
             return true;
         }
 
@@ -105,11 +103,4 @@ public class Feedback {
 
     }
 
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
-    public static void setEnabled(boolean enabled) {
-        Feedback.enabled = enabled;
-    }
 }

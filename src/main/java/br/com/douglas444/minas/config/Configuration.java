@@ -8,7 +8,7 @@ public class Configuration {
     private int microClusterLifespan;
     private int sampleLifespan;
     private boolean incrementallyUpdateDecisionModel;
-    private boolean turnFeedbackOn;
+    private boolean feedbackEnabled;
 
     private ClusteringAlgorithmController onlineClusteringAlgorithm;
     private ClusteringAlgorithmController offlineClusteringAlgorithm;
@@ -18,14 +18,14 @@ public class Configuration {
     private SamplePredictor samplePredictor;
 
     public Configuration(int minSizeDN, int minClusterSize, int windowSize, int microClusterLifespan,
-                         int sampleLifespan, boolean incrementallyUpdateDecisionModel, boolean turnFeedbackOn,
+                         int sampleLifespan, boolean incrementallyUpdateDecisionModel, boolean feedbackEnabled,
                          ClusteringAlgorithmController onlineClusteringAlgorithm,
                          ClusteringAlgorithmController offlineClusteringAlgorithm,
                          MicroClusterPredictor mainMicroClusterPredictor,
                          MicroClusterPredictor sleepMemoryMicroClusterPredictor,
                          SamplePredictor samplePredictor) {
 
-        this.turnFeedbackOn = turnFeedbackOn;
+        this.feedbackEnabled = feedbackEnabled;
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
         this.windowSize = windowSize;
@@ -84,7 +84,7 @@ public class Configuration {
         return offlineClusteringAlgorithm;
     }
 
-    public boolean getTurnFeedbackOn() {
-        return turnFeedbackOn;
+    public boolean getFeedbackEnabled() {
+        return feedbackEnabled;
     }
 }

@@ -21,7 +21,7 @@ public class MINASController implements DSClassifierController {
     @Override
     public Optional<Integer> predictAndUpdate(Sample sample) {
 
-        final Prediction prediction = minas.predict(sample);
+        final Prediction prediction = minas.process(sample);
         return prediction.getLabel();
     }
 
