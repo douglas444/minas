@@ -1,14 +1,15 @@
-package br.com.douglas444.minas.core;
+package br.com.douglas444.minas.type;
 
-import br.com.douglas444.mltk.Cluster;
-import br.com.douglas444.mltk.DistanceComparator;
-import br.com.douglas444.mltk.Sample;
+import br.com.douglas444.mltk.datastructure.Cluster;
+import br.com.douglas444.mltk.util.SampleDistanceComparator;
+import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MicroCluster {
 
+    private int dimensions;
     private int timestamp;
     private int label;
     private Category category;
@@ -18,47 +19,36 @@ public class MicroCluster {
 
     public MicroCluster(Cluster cluster, int timestamp) {
 
+        if (cluster.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
         this.timestamp = timestamp;
         final int dimensions = cluster.getSamples().get(0).getX().length;
-        final List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
         this.ss = new double[dimensions];
 
-        samples.forEach(this::update);
-    }
-
-
-    public MicroCluster(Cluster cluster, int label, int timestamp) {
-
-        this.timestamp = timestamp;
-        this.label = label;
-
-        final int dimensions = cluster.getSamples().get(0).getX().length;
-        final List<Sample> samples = cluster.getSamples();
-
-        this.n = 0;
-        this.ls = new double[dimensions];
-        this.ss = new double[dimensions];
-
-        samples.forEach(this::update);
+        cluster.getSamples().forEach(this::update);
     }
 
     public MicroCluster(Cluster cluster, int label, int timestamp, Category category) {
 
+        if (cluster.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
         this.timestamp = timestamp;
         this.label = label;
         this.category = category;
-
         final int dimensions = cluster.getSamples().get(0).getX().length;
-        final List<Sample> samples = cluster.getSamples();
 
         this.n = 0;
         this.ls = new double[dimensions];
         this.ss = new double[dimensions];
 
-        samples.forEach(this::update);
+        cluster.getSamples().forEach(this::update);
     }
 
     public void update(Sample sample) {
@@ -72,10 +62,12 @@ public class MicroCluster {
     }
 
     public Sample calculateCenter() {
+
         final double[] x = this.ls.clone();
         for (int i = 0; i < x.length; ++i) {
             x[i] /= this.n;
         }
+
         return new Sample(x, this.label);
     }
 
@@ -91,25 +83,53 @@ public class MicroCluster {
 
     }
 
-    public static Optional<MicroCluster> calculateClosestMicroCluster(Sample sample, List<MicroCluster> microClusters) {
+    public double distance(MicroCluster microCluster) {
+
+        return this.calculateCenter().distance(microCluster.calculateCenter());
+
+    }
+
+    public MicroCluster calculateClosestMicroCluster(List<MicroCluster> microClusters) {
+
+        if (microClusters.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
 
         final HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
 
         final List<Sample> decisionModelCenters = microClusters.stream()
                 .map(microCluster -> {
-                    Sample center = microCluster.calculateCenter();
-                    microClusterByCenter.put(center, microCluster);
-                    return center;
+                    Sample microClusterCenter = microCluster.calculateCenter();
+                    microClusterByCenter.put(microClusterCenter, microCluster);
+                    return microClusterCenter;
                 })
-                .sorted(new DistanceComparator(sample))
+                .sorted(new SampleDistanceComparator(this.calculateCenter()))
                 .collect(Collectors.toList());
 
-        if (decisionModelCenters.size() > 0) {
-            final Sample closestCenter = decisionModelCenters.get(0);
-            return Optional.of(microClusterByCenter.get(closestCenter));
-        } else {
-            return Optional.empty();
+        final Sample closestCenter = decisionModelCenters.get(0);
+        return microClusterByCenter.get(closestCenter);
+
+    }
+
+    public static MicroCluster calculateClosestMicroCluster(Sample sample, List<MicroCluster> microClusters) {
+
+        if (microClusters.isEmpty()) {
+            throw new IllegalArgumentException();
         }
+
+        final HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
+
+        final List<Sample> decisionModelCenters = microClusters.stream()
+                .map(microCluster -> {
+                    Sample microClusterCenter = microCluster.calculateCenter();
+                    microClusterByCenter.put(microClusterCenter, microCluster);
+                    return microClusterCenter;
+                })
+                .sorted(new SampleDistanceComparator(sample))
+                .collect(Collectors.toList());
+
+        final Sample closestCenter = decisionModelCenters.get(0);
+        return microClusterByCenter.get(closestCenter);
     }
 
     @Override

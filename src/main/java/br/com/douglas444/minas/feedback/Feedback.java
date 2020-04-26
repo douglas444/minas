@@ -1,8 +1,8 @@
 package br.com.douglas444.minas.feedback;
 
-import br.com.douglas444.minas.core.Category;
-import br.com.douglas444.minas.core.MicroCluster;
-import br.com.douglas444.mltk.Sample;
+import br.com.douglas444.minas.type.Category;
+import br.com.douglas444.minas.type.MicroCluster;
+import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +50,9 @@ public class Feedback {
 
     private static Sample getMostInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
 
-        assert samples != null && samples.size() > 0;
+        if (samples == null || samples.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
 
         return samples.stream().sorted((sample1, sample2) -> {
             double e1 = estimateBayesError(sample1, microClusters);
@@ -62,7 +64,9 @@ public class Feedback {
 
     private static Sample getLessInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
 
-        assert samples != null && samples.size() > 0;
+        if (samples == null || samples.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
 
         return samples.stream().sorted((sample1, sample2) -> {
             double e1 = estimateBayesError(sample1, microClusters);
@@ -82,8 +86,8 @@ public class Feedback {
 
         final HashMap<Integer, MicroCluster> closestMicroClusterByLabel = new HashMap<>();
         microClustersByLabel.forEach((key, value) -> {
-            MicroCluster.calculateClosestMicroCluster(target, value)
-                    .ifPresent(closest -> closestMicroClusterByLabel.put(key, closest));
+            final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(target, value);
+            closestMicroClusterByLabel.put(key, closestMicroCluster);
         });
 
         final double n = 1.0 / closestMicroClusterByLabel

@@ -1,10 +1,12 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.config.MicroClusterPredictor;
-import br.com.douglas444.minas.config.SamplePredictor;
-import br.com.douglas444.mltk.Cluster;
-import br.com.douglas444.mltk.DistanceComparator;
-import br.com.douglas444.mltk.Sample;
+import br.com.douglas444.minas.type.Category;
+import br.com.douglas444.minas.type.MicroCluster;
+import br.com.douglas444.minas.type.MicroClusterPredictor;
+import br.com.douglas444.minas.type.SamplePredictor;
+import br.com.douglas444.mltk.datastructure.Cluster;
+import br.com.douglas444.mltk.util.SampleDistanceComparator;
+import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,7 +18,7 @@ class DecisionModel {
     private SamplePredictor samplePredictor;
     private List<MicroCluster> microClusters;
 
-    public DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
+    DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
                          SamplePredictor samplePredictor) {
 
         this.incrementallyUpdate = incrementallyUpdate;
@@ -25,9 +27,9 @@ class DecisionModel {
         this.microClusters = new ArrayList<>();
     }
 
-    Prediction predict(Sample sample) {
+    Category.Prediction predict(Sample sample) {
 
-        Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
+        Category.Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
 
         prediction.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
@@ -39,7 +41,7 @@ class DecisionModel {
         return prediction;
     }
 
-    Prediction predict(MicroCluster microCluster) {
+    Category.Prediction predict(MicroCluster microCluster) {
         return this.microClusterPredictor.predict(microCluster, this.microClusters);
     }
 
@@ -50,7 +52,7 @@ class DecisionModel {
         List<Sample> decisionModelCenters = this.microClusters
                 .stream()
                 .map(MicroCluster::calculateCenter)
-                .sorted(new DistanceComparator(center))
+                .sorted(new SampleDistanceComparator(center))
                 .collect(Collectors.toList());
 
         double a = cluster.calculateStandardDeviation();
@@ -92,7 +94,7 @@ class DecisionModel {
         return inactiveMicroClusters;
     }
 
-    public List<MicroCluster> getMicroClusters() {
+    List<MicroCluster> getMicroClusters() {
         return microClusters;
     }
 

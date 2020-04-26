@@ -1,6 +1,6 @@
 package br.com.douglas444.minas.feedback;
 
-import br.com.douglas444.mltk.Sample;
+import br.com.douglas444.mltk.datastructure.Sample;
 
 class Oracle {
 
