@@ -4,7 +4,7 @@ import br.com.douglas444.mltk.datastructure.Sample;
 
 class Oracle {
 
-    static Integer label(Sample sample) {
+    static Integer label(final Sample sample) {
         return sample.getY();
     }
 

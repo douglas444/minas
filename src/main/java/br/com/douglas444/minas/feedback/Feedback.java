@@ -1,6 +1,6 @@
 package br.com.douglas444.minas.feedback;
 
-import br.com.douglas444.minas.type.Category;
+import br.com.douglas444.minas.type.MicroClusterCategory;
 import br.com.douglas444.minas.type.MicroCluster;
 import br.com.douglas444.mltk.datastructure.Sample;
 
@@ -9,14 +9,15 @@ import java.util.stream.Collectors;
 
 public class Feedback {
 
-    public static boolean validateConceptDrift(MicroCluster closestConcept, MicroCluster concept,
-                                               List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
+    public static boolean validateConceptDrift(final MicroCluster closestConcept, final MicroCluster concept,
+                                               final List<Sample> samples,
+                                               final List<MicroCluster> decisionModelConcepts) {
 
-        if (closestConcept.getCategory() == Category.NOVELTY) {
+        if (closestConcept.getMicroClusterCategory() == MicroClusterCategory.NOVELTY) {
             return true;
         }
 
-        Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
+        final Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
         concepts.add(closestConcept);
 
         if (estimateBayesError(concept.calculateCenter(), concepts) > 0.5) {
@@ -28,14 +29,15 @@ public class Feedback {
         return true;
     }
 
-    public static boolean validateConceptEvolution(MicroCluster closestConcept, MicroCluster concept,
-                                                   List<Sample> samples, List<MicroCluster> decisionModelConcepts) {
+    public static boolean validateConceptEvolution(final MicroCluster closestConcept, final MicroCluster concept,
+                                                   final List<Sample> samples,
+                                                   final List<MicroCluster> decisionModelConcepts) {
 
-        if (closestConcept.getCategory() == Category.NOVELTY) {
+        if (closestConcept.getMicroClusterCategory() == MicroClusterCategory.NOVELTY) {
             return true;
         }
 
-        Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
+        final Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
         concepts.add(closestConcept);
 
         if (estimateBayesError(concept.calculateCenter(), concepts) < 0.8) {
@@ -48,7 +50,7 @@ public class Feedback {
 
     }
 
-    private static Sample getMostInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
+    private static Sample getMostInformativeSample(final List<Sample> samples, final Set<MicroCluster> microClusters) {
 
         if (samples == null || samples.isEmpty()) {
             throw new IllegalArgumentException();
@@ -62,7 +64,7 @@ public class Feedback {
 
     }
 
-    private static Sample getLessInformativeSample(List<Sample> samples, Set<MicroCluster> microClusters) {
+    private static Sample getLessInformativeSample(final List<Sample> samples, final Set<MicroCluster> microClusters) {
 
         if (samples == null || samples.isEmpty()) {
             throw new IllegalArgumentException();
@@ -76,7 +78,7 @@ public class Feedback {
 
     }
 
-    private static double estimateBayesError(Sample target, Set<MicroCluster> microClusters) {
+    private static double estimateBayesError(final Sample target, final Set<MicroCluster> microClusters) {
 
         final HashMap<Integer, List<MicroCluster>> microClustersByLabel = new HashMap<>();
         microClusters.forEach(microCluster -> {

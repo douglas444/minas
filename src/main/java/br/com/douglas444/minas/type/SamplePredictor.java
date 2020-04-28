@@ -7,6 +7,6 @@ import java.util.List;
 @FunctionalInterface
 public interface SamplePredictor {
 
-    Category.Prediction predict(Sample sample, List<MicroCluster> temporaryMemory);
+    Prediction predict(final Sample sample, final List<MicroCluster> temporaryMemory);
 
 }

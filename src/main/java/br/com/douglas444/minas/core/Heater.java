@@ -7,7 +7,7 @@ import java.util.List;
 
 interface Heater {
 
-    void process(Sample sample);
+    void process(final Sample sample);
     List<MicroCluster> close();
 
 }

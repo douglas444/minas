@@ -1,15 +1,15 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierController;
-import br.com.douglas444.minas.type.Category;
 import br.com.douglas444.minas.core.MINAS;
+import br.com.douglas444.minas.type.Prediction;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.Optional;
 
 public class MINASController implements DSClassifierController {
 
-    private MINAS minas;
+    private final MINAS minas;
 
     public MINASController(MINAS minas) {
 
@@ -20,7 +20,7 @@ public class MINASController implements DSClassifierController {
     @Override
     public Optional<Integer> predictAndUpdate(Sample sample) {
 
-        final Category.Prediction prediction = minas.process(sample);
+        final Prediction prediction = minas.process(sample);
         return prediction.getLabel();
     }
 

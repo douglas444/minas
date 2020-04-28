@@ -62,7 +62,7 @@ public class MINASBuilder implements DSClassifierBuilder {
 
     public MINASController build() {
 
-        MINAS minas = new MINAS(this.minSizeDN,
+        final MINAS minas = new MINAS(this.minSizeDN,
                 this.minClusterSize,
                 this.windowSize,
                 this.microClusterLifespan,
@@ -80,70 +80,5 @@ public class MINASBuilder implements DSClassifierBuilder {
 
         return new MINASController(minas);
 
-    }
-
-    public int getMinSizeDN() {
-        return minSizeDN;
-    }
-
-    public int getMinClusterSize() {
-        return minClusterSize;
-    }
-
-    public int getWindowSize() {
-        return windowSize;
-    }
-
-    public int getMicroClusterLifespan() {
-        return microClusterLifespan;
-    }
-
-    public int getSampleLifespan() {
-        return sampleLifespan;
-    }
-
-    public MicroClusterPredictor getMainMicroClusterPredictor() {
-        return mainMicroClusterPredictor;
-    }
-
-    public MicroClusterPredictor getSleepMemoryMicroClusterPredictor() {
-        return sleepMemoryMicroClusterPredictor;
-    }
-
-    public boolean isIncrementallyUpdateDecisionModel() {
-        return incrementallyUpdateDecisionModel;
-    }
-
-
-    public SamplePredictor getSamplePredictor() {
-        return samplePredictor;
-    }
-
-    public HeaterType getHeaterType() {
-        return heaterType;
-    }
-
-    public boolean isFeedbackEnabled() {
-        return feedbackEnabled;
-    }
-
-    public int getHeaterNumberOfClusters() {
-        return heaterNumberOfClusters;
-    }
-
-    public int getNoveltyDetectionNumberOfClusters() {
-        return noveltyDetectionNumberOfClusters;
-    }
-
-    public int getRandomGeneratorSeed() {
-        return randomGeneratorSeed;
-    }
-
-    public int getOnlinePhaseStartTime() {
-        return onlinePhaseStartTime;
-    }
-
-    public void setOnlinePhaseStartTime(int onlinePhaseStartTime) {
-        this.onlinePhaseStartTime = onlinePhaseStartTime;
     }
 }

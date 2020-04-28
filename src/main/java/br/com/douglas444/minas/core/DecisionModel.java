@@ -1,9 +1,6 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.type.Category;
-import br.com.douglas444.minas.type.MicroCluster;
-import br.com.douglas444.minas.type.MicroClusterPredictor;
-import br.com.douglas444.minas.type.SamplePredictor;
+import br.com.douglas444.minas.type.*;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -13,13 +10,13 @@ import java.util.stream.Collectors;
 
 class DecisionModel {
 
-    private boolean incrementallyUpdate;
-    private MicroClusterPredictor microClusterPredictor;
-    private SamplePredictor samplePredictor;
-    private List<MicroCluster> microClusters;
+    private final boolean incrementallyUpdate;
+    private final MicroClusterPredictor microClusterPredictor;
+    private final SamplePredictor samplePredictor;
+    private final List<MicroCluster> microClusters;
 
     DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
-                         SamplePredictor samplePredictor) {
+                  SamplePredictor samplePredictor) {
 
         this.incrementallyUpdate = incrementallyUpdate;
         this.microClusterPredictor = microClusterPredictor;
@@ -27,9 +24,9 @@ class DecisionModel {
         this.microClusters = new ArrayList<>();
     }
 
-    Category.Prediction predict(Sample sample) {
+    Prediction predict(final Sample sample) {
 
-        Category.Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
+        final Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
 
         prediction.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
@@ -41,25 +38,25 @@ class DecisionModel {
         return prediction;
     }
 
-    Category.Prediction predict(MicroCluster microCluster) {
+    Prediction predict(final MicroCluster microCluster) {
         return this.microClusterPredictor.predict(microCluster, this.microClusters);
     }
 
-    double calculateSilhouette(Cluster cluster) {
+    double calculateSilhouette(final Cluster cluster) {
 
-        Sample center = cluster.calculateCenter();
+        final Sample center = cluster.calculateCenter();
 
-        List<Sample> decisionModelCenters = this.microClusters
+        final List<Sample> decisionModelCenters = this.microClusters
                 .stream()
                 .map(MicroCluster::calculateCenter)
                 .sorted(new SampleDistanceComparator(center))
                 .collect(Collectors.toList());
 
-        double a = cluster.calculateStandardDeviation();
+        final double a = cluster.calculateStandardDeviation();
 
-        double b;
+        final double b;
         if (decisionModelCenters.size() > 0) {
-            Sample closestCenter = decisionModelCenters.get(0);
+            final Sample closestCenter = decisionModelCenters.get(0);
             b = center.distance(closestCenter);
         } else {
             b = Double.MAX_VALUE;
@@ -69,22 +66,22 @@ class DecisionModel {
 
     }
 
-    void merge(MicroCluster microCluster) {
+    void merge(final MicroCluster microCluster) {
         this.microClusters.add(microCluster);
     }
 
-    void merge(List<MicroCluster> microClusters) {
+    void merge(final List<MicroCluster> microClusters) {
         this.microClusters.addAll(microClusters);
     }
 
-    void remove(MicroCluster microCluster) {
+    void remove(final MicroCluster microCluster) {
         this.microClusters.remove(microCluster);
     }
 
-    List<MicroCluster> extractInactiveMicroClusters(int timestamp, int lifespan) {
+    List<MicroCluster> extractInactiveMicroClusters(final int timestamp, final int lifespan) {
 
 
-        List<MicroCluster> inactiveMicroClusters = this.microClusters
+        final List<MicroCluster> inactiveMicroClusters = this.microClusters
                 .stream()
                 .filter(microCluster -> timestamp - microCluster.getTimestamp() >= lifespan)
                 .collect(Collectors.toList());

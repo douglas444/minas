@@ -9,13 +9,12 @@ import java.util.stream.Collectors;
 
 public class MicroCluster {
 
-    private int dimensions;
     private int timestamp;
     private int label;
-    private Category category;
+    private MicroClusterCategory microClusterCategory;
     private int n;
-    private double[] ls;
-    private double[] ss;
+    private final double[] ls;
+    private final double[] ss;
 
     public MicroCluster(Cluster cluster, int timestamp) {
 
@@ -33,7 +32,7 @@ public class MicroCluster {
         cluster.getSamples().forEach(this::update);
     }
 
-    public MicroCluster(Cluster cluster, int label, int timestamp, Category category) {
+    public MicroCluster(Cluster cluster, int label, int timestamp, MicroClusterCategory microClusterCategory) {
 
         if (cluster.isEmpty()) {
             throw new IllegalArgumentException();
@@ -41,7 +40,7 @@ public class MicroCluster {
 
         this.timestamp = timestamp;
         this.label = label;
-        this.category = category;
+        this.microClusterCategory = microClusterCategory;
         final int dimensions = cluster.getSamples().get(0).getX().length;
 
         this.n = 0;
@@ -51,7 +50,7 @@ public class MicroCluster {
         cluster.getSamples().forEach(this::update);
     }
 
-    public void update(Sample sample) {
+    public void update(final Sample sample) {
 
         for (int i = 0; i < sample.getX().length; ++i) {
             this.ls[i] += sample.getX()[i];
@@ -83,13 +82,13 @@ public class MicroCluster {
 
     }
 
-    public double distance(MicroCluster microCluster) {
+    public double distance(final MicroCluster microCluster) {
 
         return this.calculateCenter().distance(microCluster.calculateCenter());
 
     }
 
-    public MicroCluster calculateClosestMicroCluster(List<MicroCluster> microClusters) {
+    public MicroCluster calculateClosestMicroCluster(final List<MicroCluster> microClusters) {
 
         if (microClusters.isEmpty()) {
             throw new IllegalArgumentException();
@@ -111,7 +110,8 @@ public class MicroCluster {
 
     }
 
-    public static MicroCluster calculateClosestMicroCluster(Sample sample, List<MicroCluster> microClusters) {
+    public static MicroCluster calculateClosestMicroCluster(final Sample sample,
+                                                            final List<MicroCluster> microClusters) {
 
         if (microClusters.isEmpty()) {
             throw new IllegalArgumentException();
@@ -140,14 +140,14 @@ public class MicroCluster {
         return timestamp == that.timestamp &&
                 label == that.label &&
                 n == that.n &&
-                category == that.category &&
+                microClusterCategory == that.microClusterCategory &&
                 Arrays.equals(ls, that.ls) &&
                 Arrays.equals(ss, that.ss);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(timestamp, label, category, n);
+        int result = Objects.hash(timestamp, label, microClusterCategory, n);
         result = 31 * result + Arrays.hashCode(ls);
         result = 31 * result + Arrays.hashCode(ss);
         return result;
@@ -169,11 +169,11 @@ public class MicroCluster {
         this.label = label;
     }
 
-    public Category getCategory() {
-        return category;
+    public MicroClusterCategory getMicroClusterCategory() {
+        return microClusterCategory;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setMicroClusterCategory(MicroClusterCategory microClusterCategory) {
+        this.microClusterCategory = microClusterCategory;
     }
 }

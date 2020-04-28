@@ -29,9 +29,9 @@ public class MINAS {
     private final int microClusterLifespan;
     private final int sampleLifespan;
     private final int runningPhaseStartTime;
-    private long randomGeneratorSeed ;
+    private final long randomGeneratorSeed ;
     private final int noveltyDetectionNumberOfClusters;
-    private Heater heater;
+    private final Heater heater;
 
     private boolean feedbackDisabled;
 
@@ -84,7 +84,7 @@ public class MINAS {
 
     }
 
-    private void warmUp(Sample sample) {
+    private void warmUp(final Sample sample) {
 
         if(this.warmed) {
             throw new IllegalStateException();
@@ -94,7 +94,7 @@ public class MINAS {
             this.heater.process(sample);
         } else {
             this.warmed = true;
-            List<MicroCluster> microClusters = this.heater.close();
+            final List<MicroCluster> microClusters = this.heater.close();
             this.decisionModel.merge(microClusters);
         }
 
@@ -115,25 +115,25 @@ public class MINAS {
         for (Cluster cohesiveCluster : cohesiveClusters) {
 
             final MicroCluster microCluster = new MicroCluster(cohesiveCluster, this.timestamp);
-            final Category.Prediction prediction = this.decisionModel.predict(microCluster);
+            final Prediction prediction = this.decisionModel.predict(microCluster);
 
             prediction.ifExplainedOrElse((closestMicroCluster) -> {
 
                 if (this.feedbackDisabled || Feedback.validateConceptDrift(closestMicroCluster, microCluster,
                         cohesiveCluster.getSamples(), this.decisionModel.getMicroClusters())) {
 
-                    microCluster.setCategory(closestMicroCluster.getCategory());
+                    microCluster.setMicroClusterCategory(closestMicroCluster.getMicroClusterCategory());
                     microCluster.setLabel(closestMicroCluster.getLabel());
 
                 } else {
-                    microCluster.setCategory(Category.NOVELTY);
+                    microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
                     microCluster.setLabel(this.noveltyCount);
                     ++this.noveltyCount;
                 }
 
             }, () -> {
 
-                final Category.Prediction sleepPrediction = this.sleepMemory.predict(microCluster);
+                final Prediction sleepPrediction = this.sleepMemory.predict(microCluster);
 
                 sleepPrediction.ifExplainedOrElse((closestMicroCluster) -> {
 
@@ -142,11 +142,11 @@ public class MINAS {
 
                         this.sleepMemory.remove(closestMicroCluster);
                         this.decisionModel.merge(closestMicroCluster);
-                        microCluster.setCategory(closestMicroCluster.getCategory());
+                        microCluster.setMicroClusterCategory(closestMicroCluster.getMicroClusterCategory());
                         microCluster.setLabel(closestMicroCluster.getLabel());
 
                     } else {
-                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
                         microCluster.setLabel(this.noveltyCount);
                         ++this.noveltyCount;
                     }
@@ -155,7 +155,7 @@ public class MINAS {
 
                     if (!optionalClosestMicroCluster.isPresent()) {
 
-                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
                         microCluster.setLabel(this.noveltyCount);
                         ++this.noveltyCount;
 
@@ -163,12 +163,12 @@ public class MINAS {
                             optionalClosestMicroCluster.get(), microCluster, cohesiveCluster.getSamples(),
                             this.decisionModel.getMicroClusters())) {
 
-                        microCluster.setCategory(Category.NOVELTY);
+                        microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
                         microCluster.setLabel(this.noveltyCount);
                         ++this.noveltyCount;
 
                     } else {
-                        microCluster.setCategory(optionalClosestMicroCluster.get().getCategory());
+                        microCluster.setMicroClusterCategory(optionalClosestMicroCluster.get().getMicroClusterCategory());
                         microCluster.setLabel(optionalClosestMicroCluster.get().getLabel());
                     }
 
@@ -179,7 +179,7 @@ public class MINAS {
             for (Sample sample : cohesiveCluster.getSamples()) {
 
                 this.confusionMatrix.updatedDelayed(sample.getY(), microCluster.getLabel(),
-                        microCluster.getCategory() == Category.NOVELTY);
+                        microCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
 
             }
 
@@ -188,8 +188,7 @@ public class MINAS {
 
     }
 
-
-    public Category.Prediction process(Sample sample) {
+    public Prediction process(final Sample sample) {
 
         sample.setT(this.timestamp);
         ++this.timestamp;
@@ -199,15 +198,15 @@ public class MINAS {
             if (!this.confusionMatrix.isLabelKnown(sample.getY())) {
                 this.confusionMatrix.addKnownLabel(sample.getY());
             }
-            return new Category.Prediction(null, false);
+            return new Prediction(null, false);
         }
 
-        final Category.Prediction prediction = this.decisionModel.predict(sample);
+        final Prediction prediction = this.decisionModel.predict(sample);
 
         prediction.ifExplainedOrElse((closestMicroCluster) -> {
 
             this.confusionMatrix.addPrediction(sample.getY(), closestMicroCluster.getLabel(),
-                    closestMicroCluster.getCategory() == Category.NOVELTY);
+                    closestMicroCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
 
         }, () -> {
 
@@ -218,7 +217,6 @@ public class MINAS {
             }
 
         });
-
 
         if (this.timestamp % this.windowSize == 0) {
 

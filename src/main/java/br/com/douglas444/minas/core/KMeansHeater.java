@@ -1,6 +1,6 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.type.Category;
+import br.com.douglas444.minas.type.MicroClusterCategory;
 import br.com.douglas444.minas.type.MicroCluster;
 import br.com.douglas444.mltk.clustering.kmeans.KMeans;
 import br.com.douglas444.mltk.datastructure.Cluster;
@@ -12,10 +12,11 @@ import java.util.List;
 
 class KMeansHeater implements Heater {
 
-    int k;
-    long seed;
-    int currentTimestamp;
-    private List<Sample> buffer;
+    private final int k;
+    private final long seed;
+    private final List<Sample> buffer;
+
+    private int currentTimestamp;
 
     KMeansHeater(int k, long seed) {
         this.k = k;
@@ -24,7 +25,7 @@ class KMeansHeater implements Heater {
     }
 
     @Override
-    public void process(Sample sample) {
+    public void process(final Sample sample) {
         this.currentTimestamp = sample.getT();
         this.buffer.add(sample);
     }
@@ -47,7 +48,7 @@ class KMeansHeater implements Heater {
             final List<Cluster> clusters = KMeans.execute(samples, this.k, this.seed);
 
             clusters.stream()
-                    .map(cluster -> new MicroCluster(cluster, label, this.currentTimestamp, Category.KNOWN))
+                    .map(cluster -> new MicroCluster(cluster, label, this.currentTimestamp, MicroClusterCategory.KNOWN))
                     .forEach(microClusters::add);
         });
 

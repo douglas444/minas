@@ -31,7 +31,7 @@ public class MoaFold1On {
 
     public static void main(String[] args) throws IOException {
 
-        MINASBuilder minasBuilder = new MINASBuilder(
+        final MINASBuilder minasBuilder = new MINASBuilder(
                 MIN_SIZE_DN,
                 MIN_CLUSTER_SIZE,
                 WINDOW_SIZE,
@@ -48,9 +48,9 @@ public class MoaFold1On {
                 SLEEP_MICRO_CLUSTER_PREDICTOR,
                 SAMPLE_PREDICTOR);
 
-        MINASController minasController = minasBuilder.build();
-        FileReader fileReader = new FileReader(new File(DATA_FILE));
-        DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
+        final MINASController minasController = minasBuilder.build();
+        final FileReader fileReader = new FileReader(new File(DATA_FILE));
+        final DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
 
         DSClassifierExecutor.start(minasController, dsFileReader, true);
 
@@ -58,37 +58,37 @@ public class MoaFold1On {
 
     public static final MicroClusterPredictor MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
 
-        MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
-        double distance = microCluster.distance(closestMicroCluster);
+        final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
+        final double distance = microCluster.distance(closestMicroCluster);
 
         if (distance < closestMicroCluster.calculateStandardDeviation() +
                 microCluster.calculateStandardDeviation()) {
-            return new Category.Prediction(closestMicroCluster, true);
+            return new Prediction(closestMicroCluster, true);
         }
-        return new Category.Prediction(closestMicroCluster, false);
+        return new Prediction(closestMicroCluster, false);
     };
 
     public static final MicroClusterPredictor SLEEP_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
 
-        MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
-        double distance = microCluster.distance(closestMicroCluster);
+        final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
+        final double distance = microCluster.distance(closestMicroCluster);
 
         if (distance < closestMicroCluster.calculateStandardDeviation() +
                 microCluster.calculateStandardDeviation()) {
-            return new Category.Prediction(closestMicroCluster, true);
+            return new Prediction(closestMicroCluster, true);
         }
-        return new Category.Prediction(closestMicroCluster, false);
+        return new Prediction(closestMicroCluster, false);
     };
 
     public static final SamplePredictor SAMPLE_PREDICTOR = (sample, microClusters) -> {
 
-        MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
-        double distance = sample.distance(closestMicroCluster.calculateCenter());
+        final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
+        final double distance = sample.distance(closestMicroCluster.calculateCenter());
 
         if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
-            return new Category.Prediction(closestMicroCluster, true);
+            return new Prediction(closestMicroCluster, true);
         }
-        return new Category.Prediction(closestMicroCluster, false);
+        return new Prediction(closestMicroCluster, false);
     };
 
 }
