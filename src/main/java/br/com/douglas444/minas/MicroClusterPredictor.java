@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.type;
+package br.com.douglas444.minas;
 
 import java.util.List;
 

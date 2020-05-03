@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.feedback;
 
-import br.com.douglas444.minas.type.MicroClusterCategory;
-import br.com.douglas444.minas.type.MicroCluster;
+import br.com.douglas444.minas.MicroClusterCategory;
+import br.com.douglas444.minas.MicroCluster;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;

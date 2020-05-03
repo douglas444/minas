@@ -1,6 +1,9 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.minas.type.*;
+import br.com.douglas444.minas.MicroCluster;
+import br.com.douglas444.minas.MicroClusterPredictor;
+import br.com.douglas444.minas.Prediction;
+import br.com.douglas444.minas.SamplePredictor;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;

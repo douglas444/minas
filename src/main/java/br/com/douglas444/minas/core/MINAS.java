@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.core;
 
-import br.com.douglas444.heater.Heater;
-import br.com.douglas444.minas.type.*;
+import br.com.douglas444.minas.*;
+import br.com.douglas444.minas.heater.Heater;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.clustering.kmeans.KMeans;
 import br.com.douglas444.mltk.datastructure.Cluster;

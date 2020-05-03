@@ -1,4 +1,6 @@
-package br.com.douglas444.minas.type;
+package br.com.douglas444.minas;
+
+import br.com.douglas444.minas.MicroCluster;
 
 import java.util.Optional;
 import java.util.function.Consumer;

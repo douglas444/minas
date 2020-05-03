@@ -1,8 +1,6 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierBuilder;
-import br.com.douglas444.minas.type.MicroClusterPredictor;
-import br.com.douglas444.minas.type.SamplePredictor;
 import br.com.douglas444.minas.core.MINAS;
 
 public class MINASBuilder implements DSClassifierBuilder {

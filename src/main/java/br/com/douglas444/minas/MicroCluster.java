@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.type;
+package br.com.douglas444.minas;
 
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;

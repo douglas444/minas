@@ -2,10 +2,7 @@ package br.com.douglas444.examples;
 
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSClassifierExecutor;
-import br.com.douglas444.minas.MINASBuilder;
-import br.com.douglas444.minas.MINASController;
-import br.com.douglas444.minas.type.*;
-import br.com.douglas444.minas.type.MicroCluster;
+import br.com.douglas444.minas.*;
 
 import java.io.File;
 import java.io.FileReader;

@@ -1,4 +1,4 @@
-package br.com.douglas444.minas.type;
+package br.com.douglas444.minas;
 
 public enum MicroClusterCategory {
     NOVELTY,
