@@ -17,12 +17,12 @@
         <dependency>
             <groupId>br.com.douglas444</groupId>
             <artifactId>mltk</artifactId>
-            <version>1.0</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>br.com.douglas444</groupId>
             <artifactId>ds-framework</artifactId>
-            <version>1.0</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

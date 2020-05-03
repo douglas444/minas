@@ -1,12 +1,12 @@
 package br.com.douglas444.minas.core;
 
+import br.com.douglas444.heater.Heater;
 import br.com.douglas444.minas.type.*;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.clustering.kmeans.KMeans;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -28,7 +28,7 @@ public class MINAS {
     private final int windowSize;
     private final int microClusterLifespan;
     private final int sampleLifespan;
-    private final int runningPhaseStartTime;
+    private final int onlinePhaseStartTime;
     private final long randomGeneratorSeed ;
     private final int noveltyDetectionNumberOfClusters;
     private final Heater heater;
@@ -40,11 +40,12 @@ public class MINAS {
                  int windowSize,
                  int microClusterLifespan,
                  int sampleLifespan,
-                 int runningPhaseStartTime,
+                 int onlinePhaseStartTime,
                  boolean incrementallyUpdateDecisionModel,
                  boolean feedbackEnabled,
-                 HeaterType heaterType,
-                 int heaterNumberOfClusters,
+                 int heaterInitialBufferSize,
+                 int heaterNumberOfClustersPerLabel,
+                 int heaterAgglomerativeBufferThreshold,
                  int noveltyDetectionNumberOfClusters,
                  int randomGeneratorSeed,
                  MicroClusterPredictor mainMicroClusterPredictor,
@@ -56,7 +57,7 @@ public class MINAS {
         this.warmed = false;
         this.temporaryMemory = new ArrayList<>();
 
-        this.runningPhaseStartTime = runningPhaseStartTime;
+        this.onlinePhaseStartTime = onlinePhaseStartTime;
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
         this.windowSize = windowSize;
@@ -65,12 +66,8 @@ public class MINAS {
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.feedbackDisabled = !feedbackEnabled;
         this.randomGeneratorSeed = randomGeneratorSeed;
-
-        if (heaterType.equals(HeaterType.KMEANS)) {
-            this.heater = new KMeansHeater(heaterNumberOfClusters, this.randomGeneratorSeed);
-        } else {
-           throw new NotImplementedException();
-        }
+        this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel,
+                heaterAgglomerativeBufferThreshold, this.randomGeneratorSeed);
 
         this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel,
                 mainMicroClusterPredictor,
@@ -90,11 +87,11 @@ public class MINAS {
             throw new IllegalStateException();
         }
 
-        if (this.timestamp < this.runningPhaseStartTime) {
+        if (this.timestamp < this.onlinePhaseStartTime) {
             this.heater.process(sample);
         } else {
             this.warmed = true;
-            final List<MicroCluster> microClusters = this.heater.close();
+            final List<MicroCluster> microClusters = this.heater.getResult();
             this.decisionModel.merge(microClusters);
         }
 

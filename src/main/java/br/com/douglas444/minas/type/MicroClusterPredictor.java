@@ -5,6 +5,6 @@ import java.util.List;
 @FunctionalInterface
 public interface MicroClusterPredictor {
 
-    Prediction predict(final MicroCluster microCluster, final List<MicroCluster> temporaryMemory);
+    Prediction predict(final MicroCluster microCluster, final List<MicroCluster> microClusters);
 
 }

@@ -1,7 +1,6 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierBuilder;
-import br.com.douglas444.minas.type.HeaterType;
 import br.com.douglas444.minas.type.MicroClusterPredictor;
 import br.com.douglas444.minas.type.SamplePredictor;
 import br.com.douglas444.minas.core.MINAS;
@@ -17,9 +16,9 @@ public class MINASBuilder implements DSClassifierBuilder {
     private boolean incrementallyUpdateDecisionModel;
     private boolean feedbackEnabled;
 
-    private HeaterType heaterType;
-
-    private int heaterNumberOfClusters;
+    private int heaterInitialBufferSize;
+    private int heaterNumberOfClustersPerLabel;
+    private int heaterAgglomerativeBufferThreshold;
     private int noveltyDetectionNumberOfClusters;
     private int randomGeneratorSeed;
 
@@ -35,8 +34,9 @@ public class MINASBuilder implements DSClassifierBuilder {
                         int onlinePhaseStartTime,
                         boolean incrementallyUpdateDecisionModel,
                         boolean feedbackEnabled,
-                        HeaterType heaterType,
-                        int heaterNumberOfClusters,
+                        int heaterInitialBufferSize,
+                        int heaterNumberOfClustersPerLabel,
+                        int heaterAgglomerativeBufferThreshold,
                         int noveltyDetectionNumberOfClusters,
                         int randomGeneratorSeed,
                         MicroClusterPredictor mainMicroClusterPredictor,
@@ -51,8 +51,9 @@ public class MINASBuilder implements DSClassifierBuilder {
         this.onlinePhaseStartTime = onlinePhaseStartTime;
         this.incrementallyUpdateDecisionModel = incrementallyUpdateDecisionModel;
         this.feedbackEnabled = feedbackEnabled;
-        this.heaterType = heaterType;
-        this.heaterNumberOfClusters = heaterNumberOfClusters;
+        this.heaterInitialBufferSize = heaterInitialBufferSize;
+        this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
+        this.heaterAgglomerativeBufferThreshold = heaterAgglomerativeBufferThreshold;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
         this.mainMicroClusterPredictor = mainMicroClusterPredictor;
@@ -70,8 +71,9 @@ public class MINASBuilder implements DSClassifierBuilder {
                 this.onlinePhaseStartTime,
                 this.incrementallyUpdateDecisionModel,
                 this.feedbackEnabled,
-                this.heaterType,
-                this.heaterNumberOfClusters,
+                this.heaterInitialBufferSize,
+                this.heaterNumberOfClustersPerLabel,
+                this.heaterAgglomerativeBufferThreshold,
                 this.noveltyDetectionNumberOfClusters,
                 this.randomGeneratorSeed,
                 this.mainMicroClusterPredictor,

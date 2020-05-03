@@ -16,6 +16,28 @@ public class MicroCluster {
     private final double[] ls;
     private final double[] ss;
 
+    public MicroCluster(int timestamp, int label, MicroClusterCategory microClusterCategory, int n, double[] ls,
+                        double[] ss) {
+        this.timestamp = timestamp;
+        this.label = label;
+        this.microClusterCategory = microClusterCategory;
+        this.n = n;
+        this.ls = ls;
+        this.ss = ss;
+    }
+
+    public MicroCluster(Sample sample, int timestamp) {
+
+        this.timestamp = timestamp;
+        final int dimensions = sample.getX().length;
+
+        this.n = 0;
+        this.ls = new double[dimensions];
+        this.ss = new double[dimensions];
+
+        this.update(sample);
+    }
+
     public MicroCluster(Cluster cluster, int timestamp) {
 
         if (cluster.isEmpty()) {
@@ -132,6 +154,23 @@ public class MicroCluster {
         return microClusterByCenter.get(closestCenter);
     }
 
+    public static MicroCluster merge(MicroCluster m1, MicroCluster m2) {
+
+        final int n = m1.n + m2.n;
+        final double[] ss = m1.ss.clone();
+        final double[] ls = m1.ls.clone();
+        final int timestamp = Math.max(m1.timestamp, m2.timestamp);
+        final int label = m1.label;
+        final MicroClusterCategory microClusterCategory = MicroClusterCategory.valueOf(m1.microClusterCategory.name());
+
+        for (int i = 0; i < ss.length; ++i) {
+            ss[i] += m2.ss[i];
+            ls[i] += m2.ls[i];
+        }
+
+        return new MicroCluster(timestamp, label, microClusterCategory, n, ls, ss);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -175,5 +214,9 @@ public class MicroCluster {
 
     public void setMicroClusterCategory(MicroClusterCategory microClusterCategory) {
         this.microClusterCategory = microClusterCategory;
+    }
+
+    public int getN() {
+        return n;
     }
 }
