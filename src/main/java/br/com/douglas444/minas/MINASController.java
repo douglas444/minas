@@ -25,12 +25,26 @@ public class MINASController implements DSClassifierController {
 
     @Override
     public String getLog() {
-        return "Timestamp: " + minas.getTimestamp() +
-                "\nCER = " + minas.cer() +
-                "\nUnkR = " + minas.unkR() +
-                "\n\n"+
-                minas.getConfusionMatrix().toString() +
-                "\n-----------------------------------";
+
+        if (this.minas.isWarmed()) {
+
+            return "Timestamp = " + minas.getTimestamp() +
+                    "\nCER = " + minas.calculateCER() +
+                    "\nUnkR = " + minas.calculateUnkR() +
+                    "\n\n"+
+                    minas.getConfusionMatrix().toString() +
+                    "\n-----------------------------------";
+
+        } else {
+
+            return "Timestamp = " + minas.getTimestamp() +
+                    "\nCER = xx" +
+                    "\nUnkR = xx" +
+                    "\n\n       Warming...\n"+
+                    "\n-----------------------------------";
+
+        }
+
     }
 
 

@@ -17,12 +17,12 @@ public class MoaFold1On {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final int ONLINE_PHASE_START_TIME = 9000;
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
-    private static final boolean FEEDBACK_ENABLED = true;
+    private static final boolean FEEDBACK_ENABLED = false;
     private static final int HEATER_INITIAL_BUFFER_SIZE = 1000;
     private static final int HEATER_NUMBER_OF_CLUSTER_PER_LABEL = 100;
     private static final int HEATER_AGGLOMERATIVE_BUFFER_THRESHOLD = 2000;
     private static final int NOVELTY_DETECTION_NUMBER_OF_CLUSTERS = 100;
-    private static final int RANDOM_GENERATOR_SEED = 0;
+    private static final int RANDOM_GENERATOR_SEED = 1;
     private static final String DATA_FILE = "./datasets/moa_fold1_on.data";
     private static final String SEPARATOR = ",";
 
@@ -51,7 +51,7 @@ public class MoaFold1On {
         final FileReader fileReader = new FileReader(new File(DATA_FILE));
         final DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
 
-        DSClassifierExecutor.start(minasController, dsFileReader, true);
+        DSClassifierExecutor.start(minasController, dsFileReader);
 
     }
 

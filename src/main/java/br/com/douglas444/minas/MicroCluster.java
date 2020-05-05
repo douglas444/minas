@@ -26,9 +26,8 @@ public class MicroCluster {
         this.ss = ss;
     }
 
-    public MicroCluster(Sample sample, int timestamp) {
+    public MicroCluster(Sample sample) {
 
-        this.timestamp = timestamp;
         final int dimensions = sample.getX().length;
 
         this.n = 0;

@@ -35,7 +35,8 @@ public class AgglomerativeBuffer {
             closestMicroCluster.update(sample);
             closestMicroCluster.setTimestamp(sample.getT());
         } else {
-            MicroCluster microCluster = new MicroCluster(sample, this.timestamp);
+            MicroCluster microCluster = new MicroCluster(sample);
+            microCluster.setTimestamp(this.timestamp);
             microCluster.setLabel(sample.getY());
             microCluster.setMicroClusterCategory(MicroClusterCategory.KNOWN);
             this.add(microCluster);

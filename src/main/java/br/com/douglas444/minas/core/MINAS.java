@@ -83,8 +83,10 @@ public class MINAS {
 
     private void warmUp(final Sample sample) {
 
-        if(this.warmed) {
-            throw new IllegalStateException();
+        assert !warmed;
+
+        if (!this.confusionMatrix.isLabelKnown(sample.getY())) {
+            this.confusionMatrix.addKnownLabel(sample.getY());
         }
 
         if (this.timestamp < this.onlinePhaseStartTime) {
@@ -92,6 +94,7 @@ public class MINAS {
         } else {
             this.warmed = true;
             final List<MicroCluster> microClusters = this.heater.getResult();
+            microClusters.forEach(microCluster -> microCluster.setTimestamp(this.timestamp));
             this.decisionModel.merge(microClusters);
         }
 
@@ -187,14 +190,10 @@ public class MINAS {
 
     public Prediction process(final Sample sample) {
 
-        sample.setT(this.timestamp);
-        ++this.timestamp;
+        sample.setT(this.timestamp++);
 
         if (!this.warmed) {
             this.warmUp(sample);
-            if (!this.confusionMatrix.isLabelKnown(sample.getY())) {
-                this.confusionMatrix.addKnownLabel(sample.getY());
-            }
             return new Prediction(null, false);
         }
 
@@ -236,12 +235,15 @@ public class MINAS {
         return confusionMatrix;
     }
 
-    public double cer() {
+    public double calculateCER() {
         return this.confusionMatrix.cer();
     }
 
-    public double unkR() {
+    public double calculateUnkR() {
         return this.confusionMatrix.unkR();
     }
 
+    public boolean isWarmed() {
+        return warmed;
+    }
 }

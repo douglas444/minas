@@ -48,6 +48,10 @@ public class Heater {
             AgglomerativeBuffer ab = this.agglomerativeBufferByLabel.get(label);
             ab.add(sample);
 
+        } else {
+
+            throw new IllegalArgumentException("sample with unknown label cannot be processed by the heater");
+
         }
 
     }
