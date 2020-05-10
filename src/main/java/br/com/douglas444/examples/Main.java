@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class MoaFold1On {
+public class Main {
 
     private static final int MIN_SIZE_DN = 2000;
     private static final int MIN_CLUSTER_SIZE = 20;
@@ -17,7 +17,7 @@ public class MoaFold1On {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final int ONLINE_PHASE_START_TIME = 9000;
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
-    private static final boolean FEEDBACK_ENABLED = false;
+    private static final boolean FEEDBACK_ENABLED = true;
     private static final int HEATER_INITIAL_BUFFER_SIZE = 1000;
     private static final int HEATER_NUMBER_OF_CLUSTER_PER_LABEL = 100;
     private static final int HEATER_AGGLOMERATIVE_BUFFER_THRESHOLD = 2000;
@@ -51,7 +51,7 @@ public class MoaFold1On {
         final FileReader fileReader = new FileReader(new File(DATA_FILE));
         final DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
 
-        DSClassifierExecutor.start(minasController, dsFileReader);
+        DSClassifierExecutor.start(minasController, dsFileReader, false);
 
     }
 
