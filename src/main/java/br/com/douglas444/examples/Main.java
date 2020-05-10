@@ -51,7 +51,7 @@ public class Main {
         final FileReader fileReader = new FileReader(new File(DATA_FILE));
         final DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
 
-        DSClassifierExecutor.start(minasController, dsFileReader, false);
+        DSClassifierExecutor.start(minasController, dsFileReader);
 
     }
 
