@@ -15,7 +15,7 @@ public class Main {
     private static final int WINDOW_SIZE = 4000;
     private static final int MICRO_CLUSTER_LIFESPAN = 4000;
     private static final int SAMPLE_LIFESPAN = 4000;
-    private static final int ONLINE_PHASE_START_TIME = 9000;
+    private static final int ONLINE_PHASE_START_TIME = 10000;
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
     private static final boolean FEEDBACK_ENABLED = true;
     private static final int HEATER_INITIAL_BUFFER_SIZE = 1000;
@@ -23,8 +23,6 @@ public class Main {
     private static final int HEATER_AGGLOMERATIVE_BUFFER_THRESHOLD = 2000;
     private static final int NOVELTY_DETECTION_NUMBER_OF_CLUSTERS = 100;
     private static final int RANDOM_GENERATOR_SEED = 1;
-    private static final String DATA_FILE = "./datasets/moa_fold1_on.data";
-    private static final String SEPARATOR = ",";
 
 
     public static void main(String[] args) throws IOException {
@@ -48,11 +46,16 @@ public class Main {
                 SAMPLE_PREDICTOR);
 
         final MINASController minasController = minasBuilder.build();
-        final FileReader fileReader = new FileReader(new File(DATA_FILE));
-        final DSFileReader dsFileReader = new DSFileReader(SEPARATOR, fileReader);
+
+        FileReader fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_ini"));
+        DSFileReader dsFileReader = new DSFileReader(",", fileReader);
 
         DSClassifierExecutor.start(minasController, dsFileReader);
 
+        fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_onl"));
+        dsFileReader = new DSFileReader(",", fileReader);
+
+        DSClassifierExecutor.start(minasController, dsFileReader);
     }
 
     public static final MicroClusterPredictor MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
@@ -60,10 +63,10 @@ public class Main {
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
-        if (distance < closestMicroCluster.calculateStandardDeviation() +
-                microCluster.calculateStandardDeviation()) {
+        if (distance < closestMicroCluster.calculateStandardDeviation() * 7) {
             return new Prediction(closestMicroCluster, true);
         }
+
         return new Prediction(closestMicroCluster, false);
     };
 
@@ -72,8 +75,7 @@ public class Main {
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
-        if (distance < closestMicroCluster.calculateStandardDeviation() +
-                microCluster.calculateStandardDeviation()) {
+        if (distance < closestMicroCluster.calculateStandardDeviation() * 7) {
             return new Prediction(closestMicroCluster, true);
         }
         return new Prediction(closestMicroCluster, false);
