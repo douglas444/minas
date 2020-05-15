@@ -6,8 +6,8 @@ import br.com.douglas444.mltk.datastructure.Sample;
 import java.util.List;
 
 @FunctionalInterface
-public interface SamplePredictor {
+public interface SampleClassifier {
 
-    Prediction predict(final Sample sample, final List<MicroCluster> microClusters);
+    ClassificationResult classify(final Sample sample, final List<MicroCluster> microClusters);
 
 }

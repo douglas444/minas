@@ -58,38 +58,38 @@ public class Main {
         DSClassifierExecutor.start(minasController, dsFileReader);
     }
 
-    public static final MicroClusterPredictor MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
+    public static final MicroClusterClassifier MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
 
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
         if (distance < closestMicroCluster.calculateStandardDeviation() * 7) {
-            return new Prediction(closestMicroCluster, true);
+            return new ClassificationResult(closestMicroCluster, true);
         }
 
-        return new Prediction(closestMicroCluster, false);
+        return new ClassificationResult(closestMicroCluster, false);
     };
 
-    public static final MicroClusterPredictor SLEEP_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
+    public static final MicroClusterClassifier SLEEP_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
 
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
         if (distance < closestMicroCluster.calculateStandardDeviation() * 7) {
-            return new Prediction(closestMicroCluster, true);
+            return new ClassificationResult(closestMicroCluster, true);
         }
-        return new Prediction(closestMicroCluster, false);
+        return new ClassificationResult(closestMicroCluster, false);
     };
 
-    public static final SamplePredictor SAMPLE_PREDICTOR = (sample, microClusters) -> {
+    public static final SampleClassifier SAMPLE_PREDICTOR = (sample, microClusters) -> {
 
         final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
         final double distance = sample.distance(closestMicroCluster.calculateCenter());
 
         if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
-            return new Prediction(closestMicroCluster, true);
+            return new ClassificationResult(closestMicroCluster, true);
         }
-        return new Prediction(closestMicroCluster, false);
+        return new ClassificationResult(closestMicroCluster, false);
     };
 
 }

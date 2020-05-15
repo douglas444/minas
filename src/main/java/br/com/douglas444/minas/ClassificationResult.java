@@ -1,16 +1,14 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.minas.MicroCluster;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class Prediction {
+public class ClassificationResult {
 
     private final MicroCluster closestMicroCluster;
     private final boolean explained;
 
-    public Prediction(MicroCluster closestMicroCluster, boolean explained) {
+    public ClassificationResult(MicroCluster closestMicroCluster, boolean explained) {
 
         if (explained && closestMicroCluster == null) {
             throw new IllegalArgumentException();

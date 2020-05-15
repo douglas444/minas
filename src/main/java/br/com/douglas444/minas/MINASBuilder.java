@@ -20,9 +20,9 @@ public class MINASBuilder implements DSClassifierBuilder {
     private int noveltyDetectionNumberOfClusters;
     private int randomGeneratorSeed;
 
-    private MicroClusterPredictor mainMicroClusterPredictor;
-    private MicroClusterPredictor sleepMemoryMicroClusterPredictor;
-    private SamplePredictor samplePredictor;
+    private MicroClusterClassifier mainMicroClusterClassifier;
+    private MicroClusterClassifier sleepMemoryMicroClusterClassifier;
+    private SampleClassifier sampleClassifier;
 
     public MINASBuilder(int minSizeDN,
                         int minClusterSize,
@@ -37,9 +37,9 @@ public class MINASBuilder implements DSClassifierBuilder {
                         int heaterAgglomerativeBufferThreshold,
                         int noveltyDetectionNumberOfClusters,
                         int randomGeneratorSeed,
-                        MicroClusterPredictor mainMicroClusterPredictor,
-                        MicroClusterPredictor sleepMemoryMicroClusterPredictor,
-                        SamplePredictor samplePredictor) {
+                        MicroClusterClassifier mainMicroClusterClassifier,
+                        MicroClusterClassifier sleepMemoryMicroClusterClassifier,
+                        SampleClassifier sampleClassifier) {
 
         this.minSizeDN = minSizeDN;
         this.minClusterSize = minClusterSize;
@@ -54,9 +54,9 @@ public class MINASBuilder implements DSClassifierBuilder {
         this.heaterAgglomerativeBufferThreshold = heaterAgglomerativeBufferThreshold;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
-        this.mainMicroClusterPredictor = mainMicroClusterPredictor;
-        this.sleepMemoryMicroClusterPredictor = sleepMemoryMicroClusterPredictor;
-        this.samplePredictor = samplePredictor;
+        this.mainMicroClusterClassifier = mainMicroClusterClassifier;
+        this.sleepMemoryMicroClusterClassifier = sleepMemoryMicroClusterClassifier;
+        this.sampleClassifier = sampleClassifier;
     }
 
     public MINASController build() {
@@ -74,9 +74,9 @@ public class MINASBuilder implements DSClassifierBuilder {
                 this.heaterAgglomerativeBufferThreshold,
                 this.noveltyDetectionNumberOfClusters,
                 this.randomGeneratorSeed,
-                this.mainMicroClusterPredictor,
-                this.sleepMemoryMicroClusterPredictor,
-                this.samplePredictor);
+                this.mainMicroClusterClassifier,
+                this.sleepMemoryMicroClusterClassifier,
+                this.sampleClassifier);
 
         return new MINASController(minas);
 

@@ -1,9 +1,9 @@
 package br.com.douglas444.minas.core;
 
 import br.com.douglas444.minas.MicroCluster;
-import br.com.douglas444.minas.MicroClusterPredictor;
-import br.com.douglas444.minas.Prediction;
-import br.com.douglas444.minas.SamplePredictor;
+import br.com.douglas444.minas.MicroClusterClassifier;
+import br.com.douglas444.minas.ClassificationResult;
+import br.com.douglas444.minas.SampleClassifier;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -14,35 +14,35 @@ import java.util.stream.Collectors;
 class DecisionModel {
 
     private final boolean incrementallyUpdate;
-    private final MicroClusterPredictor microClusterPredictor;
-    private final SamplePredictor samplePredictor;
+    private final MicroClusterClassifier microClusterClassifier;
+    private final SampleClassifier sampleClassifier;
     private final List<MicroCluster> microClusters;
 
-    DecisionModel(boolean incrementallyUpdate, MicroClusterPredictor microClusterPredictor,
-                  SamplePredictor samplePredictor) {
+    DecisionModel(boolean incrementallyUpdate, MicroClusterClassifier microClusterClassifier,
+                  SampleClassifier sampleClassifier) {
 
         this.incrementallyUpdate = incrementallyUpdate;
-        this.microClusterPredictor = microClusterPredictor;
-        this.samplePredictor = samplePredictor;
+        this.microClusterClassifier = microClusterClassifier;
+        this.sampleClassifier = sampleClassifier;
         this.microClusters = new ArrayList<>();
     }
 
-    Prediction predict(final Sample sample) {
+    ClassificationResult classify(final Sample sample) {
 
-        final Prediction prediction = this.samplePredictor.predict(sample, this.microClusters);
+        final ClassificationResult classificationResult = this.sampleClassifier.classify(sample, this.microClusters);
 
-        prediction.ifExplained((closestMicroCluster) -> {
+        classificationResult.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
             if (incrementallyUpdate) {
                 closestMicroCluster.update(sample);
             }
         });
 
-        return prediction;
+        return classificationResult;
     }
 
-    Prediction predict(final MicroCluster microCluster) {
-        return this.microClusterPredictor.predict(microCluster, this.microClusters);
+    ClassificationResult classify(final MicroCluster microCluster) {
+        return this.microClusterClassifier.classify(microCluster, this.microClusters);
     }
 
     double calculateSilhouette(final Cluster cluster) {
