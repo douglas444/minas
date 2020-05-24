@@ -17,7 +17,7 @@ public class Main {
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final int ONLINE_PHASE_START_TIME = 10000;
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
-    private static final boolean FEEDBACK_ENABLED = true;
+    private static final boolean FEEDBACK_ENABLED = false;
     private static final int HEATER_INITIAL_BUFFER_SIZE = 1000;
     private static final int HEATER_NUMBER_OF_CLUSTER_PER_LABEL = 100;
     private static final int HEATER_AGGLOMERATIVE_BUFFER_THRESHOLD = 2000;
@@ -84,7 +84,7 @@ public class Main {
     public static final SampleClassifier SAMPLE_PREDICTOR = (sample, microClusters) -> {
 
         final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
-        final double distance = sample.distance(closestMicroCluster.calculateCenter());
+        final double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
         if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
             return new ClassificationResult(closestMicroCluster, true);

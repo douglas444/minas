@@ -20,7 +20,7 @@ public class Feedback {
         final Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
         concepts.add(closestConcept);
 
-        if (estimateBayesError(concept.calculateCenter(), concepts) > 0.5) {
+        if (estimateBayesError(concept.calculateCentroid(), concepts) > 0.5) {
             final Sample sample = getMostInformativeSample(samples, concepts);
             final Integer label = Oracle.label(sample);
             return label == closestConcept.getLabel();
@@ -40,7 +40,7 @@ public class Feedback {
         final Set<MicroCluster> concepts = new HashSet<>(decisionModelConcepts);
         concepts.add(closestConcept);
 
-        if (estimateBayesError(concept.calculateCenter(), concepts) < 0.8) {
+        if (estimateBayesError(concept.calculateCentroid(), concepts) < 0.8) {
             final Sample sample = getLessInformativeSample(samples, concepts);
             final Integer label = Oracle.label(sample);
             return label != closestConcept.getLabel();
@@ -95,14 +95,14 @@ public class Feedback {
         final double n = 1.0 / closestMicroClusterByLabel
                 .values()
                 .stream()
-                .map(microCluster -> microCluster.calculateCenter().distance(target))
+                .map(microCluster -> microCluster.calculateCentroid().distance(target))
                 .min(Double::compare)
                 .orElse(0.0);
 
         final double d = closestMicroClusterByLabel
                 .values()
                 .stream()
-                .map(microCluster -> 1.0 / (microCluster.calculateCenter().distance(target)))
+                .map(microCluster -> 1.0 / (microCluster.calculateCentroid().distance(target)))
                 .reduce(0.0, Double::sum);
 
         return 1 - (n/d);

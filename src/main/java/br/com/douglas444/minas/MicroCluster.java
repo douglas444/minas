@@ -81,7 +81,7 @@ public class MicroCluster {
         ++this.n;
     }
 
-    public Sample calculateCenter() {
+    public Sample calculateCentroid() {
 
         final double[] x = this.ls.clone();
         for (int i = 0; i < x.length; ++i) {
@@ -105,7 +105,7 @@ public class MicroCluster {
 
     public double distance(final MicroCluster microCluster) {
 
-        return this.calculateCenter().distance(microCluster.calculateCenter());
+        return this.calculateCentroid().distance(microCluster.calculateCentroid());
 
     }
 
@@ -115,19 +115,19 @@ public class MicroCluster {
             throw new IllegalArgumentException();
         }
 
-        final HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
+        final HashMap<Sample, MicroCluster> microClusterByCentroid = new HashMap<>();
 
-        final List<Sample> decisionModelCenters = microClusters.stream()
+        final List<Sample> decisionModelCentroids = microClusters.stream()
                 .map(microCluster -> {
-                    Sample microClusterCenter = microCluster.calculateCenter();
-                    microClusterByCenter.put(microClusterCenter, microCluster);
-                    return microClusterCenter;
+                    Sample microClusterCentroid = microCluster.calculateCentroid();
+                    microClusterByCentroid.put(microClusterCentroid, microCluster);
+                    return microClusterCentroid;
                 })
-                .sorted(new SampleDistanceComparator(this.calculateCenter()))
+                .sorted(new SampleDistanceComparator(this.calculateCentroid()))
                 .collect(Collectors.toList());
 
-        final Sample closestCenter = decisionModelCenters.get(0);
-        return microClusterByCenter.get(closestCenter);
+        final Sample closestCentroid = decisionModelCentroids.get(0);
+        return microClusterByCentroid.get(closestCentroid);
 
     }
 
@@ -138,19 +138,19 @@ public class MicroCluster {
             throw new IllegalArgumentException();
         }
 
-        final HashMap<Sample, MicroCluster> microClusterByCenter = new HashMap<>();
+        final HashMap<Sample, MicroCluster> microClusterByCentroid = new HashMap<>();
 
-        final List<Sample> decisionModelCenters = microClusters.stream()
+        final List<Sample> decisionModelCentroids = microClusters.stream()
                 .map(microCluster -> {
-                    Sample microClusterCenter = microCluster.calculateCenter();
-                    microClusterByCenter.put(microClusterCenter, microCluster);
-                    return microClusterCenter;
+                    Sample microClusterCentroid = microCluster.calculateCentroid();
+                    microClusterByCentroid.put(microClusterCentroid, microCluster);
+                    return microClusterCentroid;
                 })
                 .sorted(new SampleDistanceComparator(sample))
                 .collect(Collectors.toList());
 
-        final Sample closestCenter = decisionModelCenters.get(0);
-        return microClusterByCenter.get(closestCenter);
+        final Sample closestCentroid = decisionModelCentroids.get(0);
+        return microClusterByCentroid.get(closestCentroid);
     }
 
     public static MicroCluster merge(MicroCluster m1, MicroCluster m2) {

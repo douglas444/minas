@@ -29,7 +29,7 @@ public class AgglomerativeBuffer {
         sample.setT(this.timestamp++);
 
         MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, this.buffer);
-        double distance = sample.distance(closestMicroCluster.calculateCenter());
+        double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
         if (distance < closestMicroCluster.calculateStandardDeviation() * 2) {
             closestMicroCluster.update(sample);

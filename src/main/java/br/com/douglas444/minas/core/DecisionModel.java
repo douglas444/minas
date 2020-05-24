@@ -47,20 +47,20 @@ class DecisionModel {
 
     double calculateSilhouette(final Cluster cluster) {
 
-        final Sample center = cluster.calculateCenter();
+        final Sample centroid = cluster.calculateCentroid();
 
-        final List<Sample> decisionModelCenters = this.microClusters
+        final List<Sample> decisionModelCentroids = this.microClusters
                 .stream()
-                .map(MicroCluster::calculateCenter)
-                .sorted(new SampleDistanceComparator(center))
+                .map(MicroCluster::calculateCentroid)
+                .sorted(new SampleDistanceComparator(centroid))
                 .collect(Collectors.toList());
 
         final double a = cluster.calculateStandardDeviation();
 
         final double b;
-        if (decisionModelCenters.size() > 0) {
-            final Sample closestCenter = decisionModelCenters.get(0);
-            b = center.distance(closestCenter);
+        if (decisionModelCentroids.size() > 0) {
+            final Sample closestCentroid = decisionModelCentroids.get(0);
+            b = centroid.distance(closestCentroid);
         } else {
             b = Double.MAX_VALUE;
         }
