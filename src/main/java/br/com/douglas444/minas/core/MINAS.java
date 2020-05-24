@@ -4,6 +4,7 @@ import br.com.douglas444.minas.*;
 import br.com.douglas444.minas.heater.Heater;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.clustering.kmeans.KMeans;
+import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -105,7 +106,7 @@ public class MINAS {
         final Predicate<Cluster> isCohesive = cluster -> this.decisionModel.calculateSilhouette(cluster) > 0
                 && cluster.getSize() >= this.minClusterSize;
 
-        final List<Cluster> cohesiveClusters = KMeans
+        final List<Cluster> cohesiveClusters = KMeansPlusPlus
                 .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.randomGeneratorSeed)
                 .stream()
                 .filter(isCohesive)
