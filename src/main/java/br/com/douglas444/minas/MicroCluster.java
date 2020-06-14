@@ -109,6 +109,15 @@ public class MicroCluster {
 
     }
 
+    public void compress() {
+        Sample centroid = this.calculateCentroid();
+        for (int i = 0; i < ls.length; ++i) {
+            this.ls[i] = centroid.getX()[i];
+            this.ss[i] = centroid.getX()[i] * centroid.getX()[i];
+        }
+        this.n = 1;
+    }
+
     public MicroCluster calculateClosestMicroCluster(final List<MicroCluster> microClusters) {
 
         if (microClusters.isEmpty()) {

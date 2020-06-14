@@ -4,7 +4,6 @@ import br.com.douglas444.minas.*;
 import br.com.douglas444.minas.heater.Heater;
 import br.com.douglas444.minas.feedback.Feedback;
 import br.com.douglas444.mltk.clustering.kmeans.KMeans;
-import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -33,8 +32,7 @@ public class MINAS {
     private final long randomGeneratorSeed ;
     private final int noveltyDetectionNumberOfClusters;
     private final Heater heater;
-
-    private boolean feedbackDisabled;
+    private final boolean feedbackDisabled;
 
     public MINAS(int minSizeDN,
                  int minClusterSize,
@@ -67,6 +65,7 @@ public class MINAS {
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.feedbackDisabled = !feedbackEnabled;
         this.randomGeneratorSeed = randomGeneratorSeed;
+
         this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel,
                 heaterAgglomerativeBufferThreshold, this.randomGeneratorSeed);
 
@@ -93,9 +92,15 @@ public class MINAS {
         if (this.timestamp < this.onlinePhaseStartTime) {
             this.heater.process(sample);
         } else {
+
             this.warmed = true;
-            final List<MicroCluster> microClusters = this.heater.getResult();
+
+            final List<MicroCluster> microClusters = this.heater.getResult().stream()
+                    .filter(microCluster -> microCluster.getN() >= 3)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
             microClusters.forEach(microCluster -> microCluster.setTimestamp(this.timestamp));
+
             this.decisionModel.merge(microClusters);
         }
 
@@ -106,7 +111,7 @@ public class MINAS {
         final Predicate<Cluster> isCohesive = cluster -> this.decisionModel.calculateSilhouette(cluster) > 0
                 && cluster.getSize() >= this.minClusterSize;
 
-        final List<Cluster> cohesiveClusters = KMeansPlusPlus
+        final List<Cluster> cohesiveClusters = KMeans
                 .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.randomGeneratorSeed)
                 .stream()
                 .filter(isCohesive)
@@ -215,13 +220,18 @@ public class MINAS {
 
         });
 
-        if (this.timestamp % this.windowSize == 0) {
+        if ((this.timestamp - 10000) % this.windowSize == 0) {
 
             final List<MicroCluster> inactiveMicroClusters = this.decisionModel
                     .extractInactiveMicroClusters(this.timestamp, microClusterLifespan);
 
             this.sleepMemory.merge(inactiveMicroClusters);
-            this.temporaryMemory.removeIf(p -> (this.timestamp - p.getT()) >= sampleLifespan);
+            this.temporaryMemory.removeIf(p -> {
+                if((this.timestamp - p.getT()) >= sampleLifespan)
+                    return true;
+                else
+                    return false;
+            });
         }
 
         return classificationResult;
