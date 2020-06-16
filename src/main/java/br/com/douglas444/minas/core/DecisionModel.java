@@ -33,7 +33,7 @@ class DecisionModel {
 
         classificationResult.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
-            if (incrementallyUpdate) {
+            if (this.incrementallyUpdate) {
                 closestMicroCluster.update(sample);
             }
         });

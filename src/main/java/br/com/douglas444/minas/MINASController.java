@@ -18,7 +18,6 @@ public class MINASController implements DSClassifierController {
 
     @Override
     public Optional<Integer> process(Sample sample) {
-
         final ClassificationResult classificationResult = minas.process(sample);
         return classificationResult.getLabel();
     }

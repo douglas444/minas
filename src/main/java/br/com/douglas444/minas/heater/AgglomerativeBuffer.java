@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 public class AgglomerativeBuffer {
 
-    private int timestamp;
     private boolean isActive;
     private final List<Sample> initialData;
     private final List<MicroCluster> buffer;
@@ -24,7 +23,6 @@ public class AgglomerativeBuffer {
 
         this.label = label;
         this.isActive = false;
-        this.timestamp = 0;
         this.seed = seed;
         this.initialDataSize = initialDataSize;
         this.bufferSize = bufferSize;
@@ -33,8 +31,6 @@ public class AgglomerativeBuffer {
     }
 
     public void add(final Sample sample) {
-
-        sample.setT(this.timestamp++);
 
         if (!this.isActive) {
 
@@ -58,7 +54,6 @@ public class AgglomerativeBuffer {
                     .map(cluster -> new MicroCluster(cluster, this.label, 0, MicroClusterCategory.KNOWN))
                     .forEach(this.buffer::add);
 
-            buffer.forEach(MicroCluster::compress);
 
             return;
 
@@ -67,11 +62,11 @@ public class AgglomerativeBuffer {
         final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, this.buffer);
         double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
-        final double standardDeviation;
+        final double radius;
 
         if (closestMicroCluster.getN() > 1) {
 
-            standardDeviation = closestMicroCluster.calculateStandardDeviation() *2;
+            radius = closestMicroCluster.calculateStandardDeviation() * 2;
 
         } else {
 
@@ -79,17 +74,16 @@ public class AgglomerativeBuffer {
                     .filter(microCluster -> microCluster != closestMicroCluster)
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            standardDeviation = MicroCluster
+            radius = MicroCluster
                     .calculateClosestMicroCluster(closestMicroCluster.calculateCentroid(), bufferSubSet)
                     .distance(closestMicroCluster);
         }
 
-        if (distance < standardDeviation ){//* 2) {
+        if (distance < radius) {
             closestMicroCluster.update(sample);
             closestMicroCluster.setTimestamp(sample.getT());
         } else {
             MicroCluster microCluster = new MicroCluster(sample);
-            microCluster.setTimestamp(this.timestamp);
             microCluster.setLabel(sample.getY());
             microCluster.setMicroClusterCategory(MicroClusterCategory.KNOWN);
             this.add(microCluster);
@@ -99,37 +93,35 @@ public class AgglomerativeBuffer {
 
     private void add(final MicroCluster microCluster) {
 
-        /*if (this.timestamp - this.buffer.get(0).getTimestamp() > this.bufferSize) {
-            this.buffer.remove(0);
-        } else {*/
+        MicroCluster m1 = null;
+        MicroCluster m2 = null;
 
-            MicroCluster m1 = null;
-            MicroCluster m2 = null;
-            double minDistance = Double.MAX_VALUE;
+        double minDistance = Double.MAX_VALUE;
 
-            for (MicroCluster a : this.buffer) {
+        for (int i = 0; i < this.buffer.size(); i++) {
 
-                for (MicroCluster b : this.buffer) {
+            MicroCluster a = this.buffer.get(i);
 
-                    double distance = a.distance(b);
-                    if (distance > 0 && distance < minDistance) {
-                        minDistance = distance;
-                        m1 = a;
-                        m2 = b;
-                    }
+            for (int j = i + 1; j < this.buffer.size(); j++) {
+
+                MicroCluster b = this.buffer.get(j);
+
+                double distance = a.distance(b);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    m1 = a;
+                    m2 = b;
                 }
             }
+        }
 
-            if (m1 != null) {
-                this.buffer.remove(m1);
-                this.buffer.remove(m2);
-                this.buffer.add(MicroCluster.merge(m1, m2));
-                //this.buffer.sort(Comparator.comparingInt(MicroCluster::getTimestamp).reversed());
-            } else {
-                throw new IllegalStateException("could not decrease agglomerative buffer size");
-            }
-
-        //}
+        if (m1 != null) {
+            this.buffer.remove(m1);
+            this.buffer.remove(m2);
+            this.buffer.add(MicroCluster.merge(m1, m2));
+        } else {
+            throw new IllegalStateException("could not decrease agglomerative buffer size");
+        }
 
         this.buffer.add(microCluster);
 

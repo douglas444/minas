@@ -5,78 +5,73 @@ import br.com.douglas444.minas.core.MINAS;
 
 public class MINASBuilder implements DSClassifierBuilder {
 
-    private int minSizeDN;
-    private int minClusterSize;
-    private int windowSize;
-    private int microClusterLifespan;
-    private int sampleLifespan;
-    private int onlinePhaseStartTime;
-    private boolean incrementallyUpdateDecisionModel;
-    private boolean feedbackEnabled;
+    private final int temporaryMemoryMaxSize;
+    private final int minimumClusterSize;
+    private final int windowSize;
+    private final int microClusterLifespan;
+    private final int sampleLifespan;
+    private final int heaterCapacity;
+    private final boolean incrementallyUpdateDecisionModel;
+    private final boolean feedbackEnabled;
+    private final int heaterInitialBufferSize;
+    private final int heaterNumberOfClustersPerLabel;
+    private final int noveltyDetectionNumberOfClusters;
+    private final int randomGeneratorSeed;
+    private final MicroClusterClassifier mainMicroClusterPredictor;
+    private final MicroClusterClassifier sleepMicroClusterPredictor;
+    private final SampleClassifier samplePredictor;
 
-    private int heaterInitialBufferSize;
-    private int heaterNumberOfClustersPerLabel;
-    private int heaterAgglomerativeBufferThreshold;
-    private int noveltyDetectionNumberOfClusters;
-    private int randomGeneratorSeed;
-
-    private MicroClusterClassifier mainMicroClusterClassifier;
-    private MicroClusterClassifier sleepMemoryMicroClusterClassifier;
-    private SampleClassifier sampleClassifier;
-
-    public MINASBuilder(int minSizeDN,
-                        int minClusterSize,
+    public MINASBuilder(int temporaryMemoryMaxSize,
+                        int minimumClusterSize,
                         int windowSize,
                         int microClusterLifespan,
                         int sampleLifespan,
-                        int onlinePhaseStartTime,
+                        int heaterCapacity,
                         boolean incrementallyUpdateDecisionModel,
                         boolean feedbackEnabled,
                         int heaterInitialBufferSize,
                         int heaterNumberOfClustersPerLabel,
-                        int heaterAgglomerativeBufferThreshold,
                         int noveltyDetectionNumberOfClusters,
                         int randomGeneratorSeed,
-                        MicroClusterClassifier mainMicroClusterClassifier,
-                        MicroClusterClassifier sleepMemoryMicroClusterClassifier,
-                        SampleClassifier sampleClassifier) {
+                        MicroClusterClassifier mainMicroClusterPredictor,
+                        MicroClusterClassifier sleepMicroClusterPredictor,
+                        SampleClassifier samplePredictor) {
 
-        this.minSizeDN = minSizeDN;
-        this.minClusterSize = minClusterSize;
+        this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
+        this.minimumClusterSize = minimumClusterSize;
         this.windowSize = windowSize;
         this.microClusterLifespan = microClusterLifespan;
         this.sampleLifespan = sampleLifespan;
-        this.onlinePhaseStartTime = onlinePhaseStartTime;
+        this.heaterCapacity = heaterCapacity;
         this.incrementallyUpdateDecisionModel = incrementallyUpdateDecisionModel;
         this.feedbackEnabled = feedbackEnabled;
         this.heaterInitialBufferSize = heaterInitialBufferSize;
         this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
-        this.heaterAgglomerativeBufferThreshold = heaterAgglomerativeBufferThreshold;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
-        this.mainMicroClusterClassifier = mainMicroClusterClassifier;
-        this.sleepMemoryMicroClusterClassifier = sleepMemoryMicroClusterClassifier;
-        this.sampleClassifier = sampleClassifier;
+        this.mainMicroClusterPredictor = mainMicroClusterPredictor;
+        this.sleepMicroClusterPredictor = sleepMicroClusterPredictor;
+        this.samplePredictor = samplePredictor;
+
     }
 
     public MINASController build() {
 
-        final MINAS minas = new MINAS(this.minSizeDN,
-                this.minClusterSize,
+        final MINAS minas = new MINAS(this.temporaryMemoryMaxSize,
+                this.minimumClusterSize,
                 this.windowSize,
                 this.microClusterLifespan,
                 this.sampleLifespan,
-                this.onlinePhaseStartTime,
+                this.heaterCapacity,
                 this.incrementallyUpdateDecisionModel,
                 this.feedbackEnabled,
                 this.heaterInitialBufferSize,
                 this.heaterNumberOfClustersPerLabel,
-                this.heaterAgglomerativeBufferThreshold,
                 this.noveltyDetectionNumberOfClusters,
                 this.randomGeneratorSeed,
-                this.mainMicroClusterClassifier,
-                this.sleepMemoryMicroClusterClassifier,
-                this.sampleClassifier);
+                this.mainMicroClusterPredictor,
+                this.sleepMicroClusterPredictor,
+                this.samplePredictor);
 
         return new MINASController(minas);
 
