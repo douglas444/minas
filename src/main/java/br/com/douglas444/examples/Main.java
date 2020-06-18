@@ -3,6 +3,7 @@ package br.com.douglas444.examples;
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSClassifierExecutor;
 import br.com.douglas444.minas.*;
+import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 
 import java.io.File;
 import java.io.FileReader;
@@ -55,6 +56,9 @@ public class Main {
         fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_onl"));
         dsFileReader = new DSFileReader(",", fileReader);
         DSClassifierExecutor.start(minasController, dsFileReader, true, 1000);
+
+        DynamicConfusionMatrix dcm = minasController.getDynamicConfusionMatrixString();
+        System.out.println("\n" + dcm.toString());
 
     }
 
