@@ -3,7 +3,7 @@ package br.com.douglas444.minas.core;
 import br.com.douglas444.minas.*;
 import br.com.douglas444.minas.heater.Heater;
 import br.com.douglas444.minas.feedback.Feedback;
-import br.com.douglas444.mltk.clustering.kmeans.KMeans;
+import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class MINAS {
 
-    private int timestamp;
+    private long timestamp;
     private int noveltyCount;
     private boolean warmed;
     private int heaterCapacity;
@@ -43,12 +43,12 @@ public class MINAS {
                  int heaterInitialBufferSize,
                  int heaterNumberOfClustersPerLabel,
                  int noveltyDetectionNumberOfClusters,
-                 int randomGeneratorSeed,
+                 long randomGeneratorSeed,
                  MicroClusterClassifier mainMicroClusterClassifier,
                  MicroClusterClassifier sleepMemoryMicroClusterClassifier,
                  SampleClassifier sampleClassifier) {
 
-        this.timestamp = 0;
+        this.timestamp = 1;
         this.noveltyCount = 0;
         this.warmed = false;
         this.temporaryMemory = new ArrayList<>();
@@ -97,7 +97,7 @@ public class MINAS {
                     .filter(microCluster -> microCluster.getN() >= 3)
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            microClusters.forEach(microCluster -> microCluster.setTimestamp(1));
+            microClusters.forEach(microCluster -> microCluster.setTimestamp(this.timestamp));
             this.decisionModel.merge(microClusters);
         }
 
@@ -105,26 +105,27 @@ public class MINAS {
 
     private void detectNoveltyAndUpdate() {
 
-         List<Cluster> cohesiveClusters = KMeans
+        final List<Cluster> clusters = KMeansPlusPlus
                 .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.randomGeneratorSeed)
                 .stream()
                 .filter(cluster -> cluster.getSize() >= this.minimumClusterSize)
+                .sorted(Comparator.comparing(cluster -> cluster.getMostRecentSample().getT()))
                 .collect(Collectors.toList());
 
-        for (Cluster cohesiveCluster : cohesiveClusters) {
+        for (Cluster cluster : clusters) {
 
-            if (this.decisionModel.calculateSilhouette(cohesiveCluster) <= 0) {
+            if (this.decisionModel.calculateSilhouette(cluster) <= 0) {
                 continue;
             }
 
-            this.temporaryMemory.removeAll(cohesiveCluster.getSamples());
-            final MicroCluster microCluster = new MicroCluster(cohesiveCluster, this.timestamp);
+            this.temporaryMemory.removeAll(cluster.getSamples());
+            final MicroCluster microCluster = new MicroCluster(cluster, cluster.getMostRecentSample().getT());
             final ClassificationResult classificationResult = this.decisionModel.classify(microCluster);
 
             classificationResult.ifExplainedOrElse((closestMicroCluster) -> {
 
                 if (this.feedbackDisabled || Feedback.validateConceptDrift(closestMicroCluster, microCluster,
-                        cohesiveCluster.getSamples(), this.decisionModel.getMicroClusters())) {
+                        cluster.getSamples(), this.decisionModel.getMicroClusters())) {
 
                     microCluster.setMicroClusterCategory(closestMicroCluster.getMicroClusterCategory());
                     microCluster.setLabel(closestMicroCluster.getLabel());
@@ -142,7 +143,7 @@ public class MINAS {
                 sleepClassificationResult.ifExplainedOrElse((closestMicroCluster) -> {
 
                     if (this.feedbackDisabled || Feedback.validateConceptDrift(closestMicroCluster, microCluster,
-                            cohesiveCluster.getSamples(), this.decisionModel.getMicroClusters())) {
+                            cluster.getSamples(), this.decisionModel.getMicroClusters())) {
 
                         this.sleepMemory.remove(closestMicroCluster);
                         this.decisionModel.merge(closestMicroCluster);
@@ -164,7 +165,7 @@ public class MINAS {
                         ++this.noveltyCount;
 
                     } else if (this.feedbackDisabled || Feedback.validateConceptEvolution(
-                            optionalClosestMicroCluster.get(), microCluster, cohesiveCluster.getSamples(),
+                            optionalClosestMicroCluster.get(), microCluster, cluster.getSamples(),
                             this.decisionModel.getMicroClusters())) {
 
                         microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
@@ -172,7 +173,6 @@ public class MINAS {
                         ++this.noveltyCount;
 
                     } else {
-
                         this.sleepMemory.remove(optionalClosestMicroCluster.get());
                         this.decisionModel.merge(optionalClosestMicroCluster.get());
                         microCluster.setMicroClusterCategory(optionalClosestMicroCluster.get().getMicroClusterCategory());
@@ -183,12 +183,13 @@ public class MINAS {
 
             });
 
-            for (Sample sample : cohesiveCluster.getSamples()) {
+            this.decisionModel.merge(microCluster);
+
+            for (Sample sample : cluster.getSamples()) {
                 this.confusionMatrix.updatedDelayed(sample.getY(), microCluster.getLabel(),
                         microCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
             }
 
-            this.decisionModel.merge(microCluster);
         }
     }
 
@@ -199,7 +200,7 @@ public class MINAS {
             return new ClassificationResult(null, false);
         }
 
-        sample.setT(++this.timestamp);
+        sample.setT(this.timestamp);
 
         final ClassificationResult classificationResult = this.decisionModel.classify(sample);
 
@@ -209,29 +210,28 @@ public class MINAS {
                     closestMicroCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
 
         }, () -> {
-
             this.temporaryMemory.add(sample);
             this.confusionMatrix.addUnknown(sample.getY());
             if (this.temporaryMemory.size() >= this.temporaryMemoryMaxSize) {
                 this.detectNoveltyAndUpdate();
             }
-
         });
 
         if (this.timestamp % this.windowSize == 0) {
-
             final List<MicroCluster> inactiveMicroClusters = this.decisionModel
                     .extractInactiveMicroClusters(this.timestamp, microClusterLifespan);
             this.sleepMemory.merge(inactiveMicroClusters);
             this.temporaryMemory.removeIf(p -> p.getT() < this.timestamp - this.sampleLifespan);
         }
 
+        ++this.timestamp;
+
         return classificationResult;
 
     }
 
-    public int getTimestamp() {
-        return timestamp;
+    public long getTimestamp() {
+        return timestamp - 1;
     }
 
     public DynamicConfusionMatrix getConfusionMatrix() {
@@ -248,5 +248,9 @@ public class MINAS {
 
     public boolean isWarmed() {
         return warmed;
+    }
+
+    public int getNoveltyCount() {
+        return noveltyCount;
     }
 }

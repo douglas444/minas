@@ -24,7 +24,7 @@ public class Main {
     private static final int HEATER_NUMBER_OF_CLUSTERS_PER_LABEL = 100;
     private static final int NOVELTY_DETECTION_NUMBER_OF_CLUSTERS = 100;
 
-    private static final int RANDOM_GENERATOR_SEED = 1;
+    private static final long RANDOM_GENERATOR_SEED = 0;
 
 
     public static void main(String[] args) throws IOException {
@@ -50,11 +50,11 @@ public class Main {
 
         FileReader fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_ini"));
         DSFileReader dsFileReader = new DSFileReader(",", fileReader);
-        DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
+        DSClassifierExecutor.start(minasController, dsFileReader, true, 1000);
 
         fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_onl"));
         dsFileReader = new DSFileReader(",", fileReader);
-        DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
+        DSClassifierExecutor.start(minasController, dsFileReader, true, 1000);
 
     }
 
@@ -67,13 +67,9 @@ public class Main {
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
-        if (distance < closestMicroCluster.calculateStandardDeviation() * 1.1) {
+        if (distance <= closestMicroCluster.calculateStandardDeviation() + microCluster.calculateStandardDeviation()) {
             return new ClassificationResult(closestMicroCluster, true);
 
-        } else if (distance < closestMicroCluster.calculateStandardDeviation() +
-                microCluster.calculateStandardDeviation()) {
-
-            return new ClassificationResult(closestMicroCluster, true);
         }
 
         return new ClassificationResult(closestMicroCluster, false);
@@ -88,7 +84,7 @@ public class Main {
         final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
         final double distance = microCluster.distance(closestMicroCluster);
 
-        if (distance <= closestMicroCluster.calculateStandardDeviation() * 1.1) {
+        if (distance <= closestMicroCluster.calculateStandardDeviation() + microCluster.calculateStandardDeviation()) {
             return new ClassificationResult(closestMicroCluster, true);
         }
 

@@ -23,7 +23,7 @@ public class Feedback {
         if (estimateBayesError(concept.calculateCentroid(), concepts) > 0.5) {
             final Sample sample = getMostInformativeSample(samples, concepts);
             final Integer label = Oracle.label(sample);
-            return label == closestConcept.getLabel();
+            return label.equals(closestConcept.getLabel());
         }
 
         return true;
@@ -43,7 +43,7 @@ public class Feedback {
         if (estimateBayesError(concept.calculateCentroid(), concepts) < 0.8) {
             final Sample sample = getLessInformativeSample(samples, concepts);
             final Integer label = Oracle.label(sample);
-            return label != closestConcept.getLabel();
+            return !label.equals(closestConcept.getLabel());
         }
 
         return true;

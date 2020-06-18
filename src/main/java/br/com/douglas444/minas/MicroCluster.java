@@ -3,20 +3,19 @@ package br.com.douglas444.minas;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MicroCluster {
 
-    private int timestamp;
-    private int label;
+    private Long timestamp;
+    private Integer label;
     private MicroClusterCategory microClusterCategory;
     private int n;
     private final double[] ls;
     private final double[] ss;
 
-    public MicroCluster(int timestamp, int label, MicroClusterCategory microClusterCategory, int n, double[] ls,
+    public MicroCluster(Long timestamp, Integer label, MicroClusterCategory microClusterCategory, int n, double[] ls,
                         double[] ss) {
         this.timestamp = timestamp;
         this.label = label;
@@ -37,7 +36,7 @@ public class MicroCluster {
         this.update(sample);
     }
 
-    public MicroCluster(Cluster cluster, int timestamp) {
+    public MicroCluster(Cluster cluster, Long timestamp) {
 
         if (cluster.isEmpty()) {
             throw new IllegalArgumentException();
@@ -53,13 +52,12 @@ public class MicroCluster {
         cluster.getSamples().forEach(this::update);
     }
 
-    public MicroCluster(Cluster cluster, int label, int timestamp, MicroClusterCategory microClusterCategory) {
+    public MicroCluster(Cluster cluster, Integer label, MicroClusterCategory microClusterCategory) {
 
         if (cluster.isEmpty()) {
             throw new IllegalArgumentException();
         }
 
-        this.timestamp = timestamp;
         this.label = label;
         this.microClusterCategory = microClusterCategory;
         final int dimensions = cluster.getSamples().get(0).getX().length;
@@ -158,8 +156,13 @@ public class MicroCluster {
         final int n = m1.n + m2.n;
         final double[] ss = m1.ss.clone();
         final double[] ls = m1.ls.clone();
-        final int timestamp = Math.max(m1.timestamp, m2.timestamp);
-        final int label = m1.label;
+
+        final Long timestamp =
+                (m1.timestamp != null && m2.timestamp != null) ?
+                        Long.valueOf(Math.max(m1.timestamp, m2.timestamp))
+                        : (m1.timestamp != null ? m1.timestamp : m2.timestamp);
+
+        final Integer label = m1.label;
         final MicroClusterCategory microClusterCategory = MicroClusterCategory.valueOf(m1.microClusterCategory.name());
 
         for (int i = 0; i < ss.length; ++i) {
@@ -176,7 +179,7 @@ public class MicroCluster {
         if (o == null || getClass() != o.getClass()) return false;
         MicroCluster that = (MicroCluster) o;
         return timestamp == that.timestamp &&
-                label == that.label &&
+                label.equals(that.label) &&
                 n == that.n &&
                 microClusterCategory == that.microClusterCategory &&
                 Arrays.equals(ls, that.ls) &&
@@ -191,19 +194,19 @@ public class MicroCluster {
         return result;
     }
 
-    public void setTimestamp(int timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
-    public int getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public int getLabel() {
+    public Integer getLabel() {
         return label;
     }
 
-    public void setLabel(int label) {
+    public void setLabel(Integer label) {
         this.label = label;
     }
 

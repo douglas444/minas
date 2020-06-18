@@ -16,7 +16,7 @@ public class MINASBuilder implements DSClassifierBuilder {
     private final int heaterInitialBufferSize;
     private final int heaterNumberOfClustersPerLabel;
     private final int noveltyDetectionNumberOfClusters;
-    private final int randomGeneratorSeed;
+    private final long randomGeneratorSeed;
     private final MicroClusterClassifier mainMicroClusterPredictor;
     private final MicroClusterClassifier sleepMicroClusterPredictor;
     private final SampleClassifier samplePredictor;
@@ -32,7 +32,7 @@ public class MINASBuilder implements DSClassifierBuilder {
                         int heaterInitialBufferSize,
                         int heaterNumberOfClustersPerLabel,
                         int noveltyDetectionNumberOfClusters,
-                        int randomGeneratorSeed,
+                        long randomGeneratorSeed,
                         MicroClusterClassifier mainMicroClusterPredictor,
                         MicroClusterClassifier sleepMicroClusterPredictor,
                         SampleClassifier samplePredictor) {

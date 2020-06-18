@@ -36,57 +36,54 @@ public class AgglomerativeBuffer {
 
             this.initialData.add(sample);
 
-            if (this.initialData.size() < this.initialDataSize) {
-                return;
+            if (this.initialData.size() >= this.initialDataSize) {
+
+                this.isActive = true;
+
+                if (this.initialData.size() < this.bufferSize) {
+                    throw new IllegalStateException("not enough samples for agglomerative buffer");
+                }
+
+                final List<Cluster> clusters = KMeans.execute(this.initialData, this.bufferSize, this.seed);
+
+                this.initialData.clear();
+
+                clusters.stream()
+                        .map(cluster -> new MicroCluster(cluster, this.label, MicroClusterCategory.KNOWN))
+                        .forEach(this.buffer::add);
             }
-
-            this.isActive = true;
-
-            if (this.initialData.size() < this.bufferSize) {
-                throw new IllegalStateException("not enough samples for agglomerative buffer");
-            }
-
-            final List<Cluster> clusters = KMeans.execute(this.initialData, this.bufferSize, this.seed);
-
-            this.initialData.clear();
-
-            clusters.stream()
-                    .map(cluster -> new MicroCluster(cluster, this.label, 0, MicroClusterCategory.KNOWN))
-                    .forEach(this.buffer::add);
-
-
-            return;
-
-        }
-
-        final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, this.buffer);
-        double distance = sample.distance(closestMicroCluster.calculateCentroid());
-
-        final double radius;
-
-        if (closestMicroCluster.getN() > 1) {
-
-            radius = closestMicroCluster.calculateStandardDeviation() * 2;
 
         } else {
 
-             final List<MicroCluster> bufferSubSet = this.buffer.stream()
-                    .filter(microCluster -> microCluster != closestMicroCluster)
-                    .collect(Collectors.toCollection(ArrayList::new));
+            final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, this.buffer);
+            double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
-            radius = MicroCluster
-                    .calculateClosestMicroCluster(closestMicroCluster.calculateCentroid(), bufferSubSet)
-                    .distance(closestMicroCluster);
-        }
+            final double radius;
 
-        if (distance < radius) {
-            closestMicroCluster.update(sample);
-            closestMicroCluster.setTimestamp(sample.getT());
-        } else {
-            MicroCluster microCluster = new MicroCluster(sample);
-            microCluster.setLabel(sample.getY());
-            microCluster.setMicroClusterCategory(MicroClusterCategory.KNOWN);
-            this.add(microCluster);
+            if (closestMicroCluster.getN() > 1) {
+
+                radius = closestMicroCluster.calculateStandardDeviation() * 2;
+
+            } else {
+
+                final List<MicroCluster> bufferSubSet = this.buffer.stream()
+                        .filter(microCluster -> microCluster != closestMicroCluster)
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+                radius = MicroCluster
+                        .calculateClosestMicroCluster(closestMicroCluster.calculateCentroid(), bufferSubSet)
+                        .distance(closestMicroCluster);
+            }
+
+            if (distance < radius) {
+                closestMicroCluster.update(sample);
+                closestMicroCluster.setTimestamp(sample.getT());
+            } else {
+                MicroCluster microCluster = new MicroCluster(sample);
+                microCluster.setLabel(sample.getY());
+                microCluster.setMicroClusterCategory(MicroClusterCategory.KNOWN);
+                this.add(microCluster);
+            }
         }
 
     }
