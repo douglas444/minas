@@ -133,7 +133,10 @@ public class MINAS {
                                     .closestMicroCluster(closest)
                                     .targetMicroCluster(micro)
                                     .targetSamples(cluster.getSamples()))
-                            .executeOrDefault(() -> this.addExtension(micro, closest));
+                            .executeOrDefault(() -> {
+                                this.awake(micro);
+                                this.addExtension(micro, closest);
+                            });
 
                 }, (optionalClosest) -> {
 
