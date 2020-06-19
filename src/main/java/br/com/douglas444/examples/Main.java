@@ -3,6 +3,8 @@ package br.com.douglas444.examples;
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSClassifierExecutor;
 import br.com.douglas444.minas.*;
+import br.com.douglas444.minas.feedback.Feedback;
+import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 
 import java.io.File;
@@ -17,18 +19,70 @@ public class Main {
     private static final int MICRO_CLUSTER_LIFESPAN = 4000;
     private static final int SAMPLE_LIFESPAN = 4000;
     private static final int HEATER_CAPACITY = 10000;
-
     private static final boolean INCREMENTALLY_UPDATE_DECISION_MODEL = false;
-    private static final boolean FEEDBACK_ENABLED = false;
-
     private static final int HEATER_INITIAL_BUFFER_SIZE = 1000;
     private static final int HEATER_NUMBER_OF_CLUSTERS_PER_LABEL = 100;
     private static final int NOVELTY_DETECTION_NUMBER_OF_CLUSTERS = 100;
-
     private static final long RANDOM_GENERATOR_SEED = 0;
+
+    private static final MINASInterceptor INTERCEPTOR_COLLECTION = new MINASInterceptor();
 
 
     public static void main(String[] args) throws IOException {
+
+        INTERCEPTOR_COLLECTION
+                .MICRO_CLUSTER_EXPLAINED_INTERCEPTOR.define((context) -> {
+
+            if (Feedback.validateConceptDrift(
+                    context.getClosestMicroCluster(),
+                    context.getTargetMicroCluster(),
+                    context.getTargetSamples(),
+                    context.getMinas().getDecisionModel())) {
+
+                context.getMinas().addExtension(context.getTargetMicroCluster(), context.getClosestMicroCluster());
+            } else {
+                context.getMinas().addNovelty(context.getTargetMicroCluster());
+            }
+
+        });
+
+        INTERCEPTOR_COLLECTION
+                .MICRO_CLUSTER_EXPLAINED_BY_ASLEEP_INTERCEPTOR.define((context) -> {
+
+            if (Feedback.validateConceptDrift(
+                    context.getClosestMicroCluster(),
+                    context.getTargetMicroCluster(),
+                    context.getTargetSamples(),
+                    context.getMinas().getDecisionModel())) {
+
+                context.getMinas().awake(context.getClosestMicroCluster());
+                context.getMinas().addExtension(context.getTargetMicroCluster(), context.getClosestMicroCluster());
+            } else {
+                context.getMinas().addNovelty(context.getTargetMicroCluster());
+            }
+
+        });
+
+        INTERCEPTOR_COLLECTION
+                .MICRO_CLUSTER_UNEXPLAINED_INTERCEPTOR.define((context) -> {
+
+            if (context.getClosestMicroCluster() == null) {
+
+                context.getMinas().addNovelty(context.getTargetMicroCluster());
+
+            } else if (Feedback.validateConceptEvolution(
+                    context.getClosestMicroCluster(),
+                    context.getTargetMicroCluster(),
+                    context.getTargetSamples(),
+                    context.getMinas().getDecisionModel())) {
+
+                context.getMinas().addNovelty(context.getTargetMicroCluster());
+            } else {
+                context.getMinas().awake(context.getClosestMicroCluster());
+                context.getMinas().addExtension(context.getTargetMicroCluster(), context.getClosestMicroCluster());
+            }
+
+        });
 
         final MINASBuilder minasBuilder = new MINASBuilder(
                 TEMPORARY_MEMORY_MAX_SIZE,
@@ -38,14 +92,11 @@ public class Main {
                 SAMPLE_LIFESPAN,
                 HEATER_CAPACITY,
                 INCREMENTALLY_UPDATE_DECISION_MODEL,
-                FEEDBACK_ENABLED,
                 HEATER_INITIAL_BUFFER_SIZE,
                 HEATER_NUMBER_OF_CLUSTERS_PER_LABEL,
                 NOVELTY_DETECTION_NUMBER_OF_CLUSTERS,
                 RANDOM_GENERATOR_SEED,
-                MAIN_MICRO_CLUSTER_PREDICTOR,
-                SLEEP_MICRO_CLUSTER_PREDICTOR,
-                SAMPLE_PREDICTOR);
+                INTERCEPTOR_COLLECTION);
 
         final MINASController minasController = minasBuilder.build();
 
@@ -62,53 +113,5 @@ public class Main {
 
     }
 
-    public static final MicroClusterClassifier MAIN_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
-
-        if (microClusters.isEmpty()) {
-            return new ClassificationResult(null, false);
-        }
-
-        final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
-        final double distance = microCluster.distance(closestMicroCluster);
-
-        if (distance <= closestMicroCluster.calculateStandardDeviation() + microCluster.calculateStandardDeviation()) {
-            return new ClassificationResult(closestMicroCluster, true);
-
-        }
-
-        return new ClassificationResult(closestMicroCluster, false);
-    };
-
-    public static final MicroClusterClassifier SLEEP_MICRO_CLUSTER_PREDICTOR = (microCluster, microClusters) -> {
-
-        if (microClusters.isEmpty()) {
-            return new ClassificationResult(null, false);
-        }
-
-        final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
-        final double distance = microCluster.distance(closestMicroCluster);
-
-        if (distance <= closestMicroCluster.calculateStandardDeviation() + microCluster.calculateStandardDeviation()) {
-            return new ClassificationResult(closestMicroCluster, true);
-        }
-
-        return new ClassificationResult(closestMicroCluster, false);
-    };
-
-    public static final SampleClassifier SAMPLE_PREDICTOR = (sample, microClusters) -> {
-
-        if (microClusters.isEmpty()) {
-            return new ClassificationResult(null, false);
-        }
-
-        final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
-        final double distance = sample.distance(closestMicroCluster.calculateCentroid());
-
-        if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
-            return new ClassificationResult(closestMicroCluster, true);
-        }
-
-        return new ClassificationResult(closestMicroCluster, false);
-    };
 
 }

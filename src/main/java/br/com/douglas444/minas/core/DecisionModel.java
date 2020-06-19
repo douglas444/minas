@@ -1,9 +1,9 @@
 package br.com.douglas444.minas.core;
 
 import br.com.douglas444.minas.MicroCluster;
-import br.com.douglas444.minas.MicroClusterClassifier;
 import br.com.douglas444.minas.ClassificationResult;
-import br.com.douglas444.minas.SampleClassifier;
+import br.com.douglas444.minas.interceptor.DecisionModelContext;
+import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -14,22 +14,39 @@ import java.util.stream.Collectors;
 class DecisionModel {
 
     private final boolean incrementallyUpdate;
-    private final MicroClusterClassifier microClusterClassifier;
-    private final SampleClassifier sampleClassifier;
+    private final MINASInterceptor interceptorCollection;
     private final List<MicroCluster> microClusters;
 
-    DecisionModel(boolean incrementallyUpdate, MicroClusterClassifier microClusterClassifier,
-                  SampleClassifier sampleClassifier) {
+    DecisionModel(boolean incrementallyUpdate, MINASInterceptor interceptorCollection) {
 
         this.incrementallyUpdate = incrementallyUpdate;
-        this.microClusterClassifier = microClusterClassifier;
-        this.sampleClassifier = sampleClassifier;
+        this.interceptorCollection = interceptorCollection;
         this.microClusters = new ArrayList<>();
     }
 
     ClassificationResult classify(final Sample sample) {
 
-        final ClassificationResult classificationResult = this.sampleClassifier.classify(sample, this.microClusters);
+        final ClassificationResult classificationResult = this.interceptorCollection.SAMPLE_CLASSIFIER_INTERCEPTOR
+                .with(new DecisionModelContext()
+                        .sampleTarget(sample)
+                        .decisionModel(this.microClusters))
+                .executeOrDefault(() -> {
+
+                    if (microClusters.isEmpty()) {
+                        return new ClassificationResult(null, false);
+                    }
+
+                    final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample,
+                            microClusters);
+
+                    final double distance = sample.distance(closestMicroCluster.calculateCentroid());
+
+                    if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
+                        return new ClassificationResult(closestMicroCluster, true);
+                    }
+
+                    return new ClassificationResult(closestMicroCluster, false);
+                });
 
         classificationResult.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
@@ -42,7 +59,26 @@ class DecisionModel {
     }
 
     ClassificationResult classify(final MicroCluster microCluster) {
-        return this.microClusterClassifier.classify(microCluster, this.microClusters);
+
+        return this.interceptorCollection.MICRO_CLUSTER_CLASSIFIER_INTERCEPTOR
+                .with(new DecisionModelContext()
+                        .microClusterTarget(microCluster)
+                        .decisionModel(this.microClusters))
+                .executeOrDefault(() -> {
+
+                    if (microClusters.isEmpty()) {
+                        return new ClassificationResult(null, false);
+                    }
+
+                    final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
+                    final double distance = microCluster.distance(closestMicroCluster);
+
+                    if (distance <= closestMicroCluster.calculateStandardDeviation() + microCluster.calculateStandardDeviation()) {
+                        return new ClassificationResult(closestMicroCluster, true);
+                    }
+
+                    return new ClassificationResult(closestMicroCluster, false);
+                });
     }
 
     double calculateSilhouette(final Cluster cluster) {
@@ -77,10 +113,6 @@ class DecisionModel {
         this.microClusters.addAll(microClusters);
     }
 
-    void remove(final MicroCluster microCluster) {
-        this.microClusters.remove(microCluster);
-    }
-
     List<MicroCluster> extractInactiveMicroClusters(final long timestamp, final int lifespan) {
 
         final List<MicroCluster> inactiveMicroClusters = this.microClusters
@@ -93,8 +125,11 @@ class DecisionModel {
         return inactiveMicroClusters;
     }
 
-    List<MicroCluster> getMicroClusters() {
+    public List<MicroCluster> getMicroClusters() {
         return microClusters;
     }
 
+    void remove(final MicroCluster microCluster) {
+        this.microClusters.remove(microCluster);
+    }
 }
