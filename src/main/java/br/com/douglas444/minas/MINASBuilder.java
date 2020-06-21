@@ -61,7 +61,7 @@ public class MINASBuilder implements DSClassifierBuilder {
                 this.heaterNumberOfClustersPerLabel,
                 this.noveltyDetectionNumberOfClusters,
                 this.randomGeneratorSeed,
-                this.interceptorCollection == null ? new MINASInterceptor() : this.interceptorCollection);
+                this.interceptorCollection);
 
         return new MINASController(minas);
 

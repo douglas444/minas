@@ -61,10 +61,10 @@ public class MINAS {
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
 
-        this.interceptorCollection = interceptorCollection;
+        this.interceptorCollection = (interceptorCollection == null) ? new MINASInterceptor() : interceptorCollection;
         this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel, this.randomGeneratorSeed);
-        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, interceptorCollection);
-        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, interceptorCollection);
+        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
+        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
         this.confusionMatrix = new DynamicConfusionMatrix();
 
     }
