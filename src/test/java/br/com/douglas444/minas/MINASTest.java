@@ -48,7 +48,7 @@ public class MINASTest {
         assert url != null;
         File file = new File(url.getFile());
 
-        //Executing online phase
+        //Executing offline phase
         FileReader fileReader = new FileReader(file);
         DSFileReader dsFileReader = new DSFileReader(",", fileReader);
         DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
@@ -57,7 +57,7 @@ public class MINASTest {
         assert url != null;
         file = new File(url.getFile());
 
-        //Executing offline phase
+        //Executing online phase
         fileReader = new FileReader(file);
         dsFileReader = new DSFileReader(",", fileReader);
         DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
