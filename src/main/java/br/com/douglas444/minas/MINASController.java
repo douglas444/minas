@@ -1,7 +1,6 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierController;
-import br.com.douglas444.minas.core.MINAS;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
 

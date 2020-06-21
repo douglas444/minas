@@ -3,6 +3,8 @@ package br.com.douglas444.minas.interceptor;
 import br.com.douglas444.dsframework.interceptor.ConsumerOrRunnableInterceptor;
 import br.com.douglas444.dsframework.interceptor.FunctionOrSupplierInterceptor;
 import br.com.douglas444.minas.ClassificationResult;
+import br.com.douglas444.minas.interceptor.context.DecisionModelContext;
+import br.com.douglas444.minas.interceptor.context.NoveltyDetectionContext;
 
 public class MINASInterceptor {
 

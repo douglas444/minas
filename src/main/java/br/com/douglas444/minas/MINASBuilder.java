@@ -1,7 +1,8 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierBuilder;
-import br.com.douglas444.minas.core.MINAS;
+import br.com.douglas444.minas.MINAS;
+import br.com.douglas444.minas.MINASController;
 import br.com.douglas444.minas.interceptor.MINASInterceptor;
 
 public class MINASBuilder implements DSClassifierBuilder {

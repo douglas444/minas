@@ -2,8 +2,8 @@ package br.com.douglas444.examples;
 
 import br.com.douglas444.dsframework.DSFileReader;
 import br.com.douglas444.dsframework.DSClassifierExecutor;
-import br.com.douglas444.minas.*;
-import br.com.douglas444.minas.feedback.Feedback;
+import br.com.douglas444.minas.MINASBuilder;
+import br.com.douglas444.minas.MINASController;
 import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 
@@ -26,7 +26,6 @@ public class Main {
     private static final long RANDOM_GENERATOR_SEED = 0;
 
     private static final MINASInterceptor INTERCEPTOR_COLLECTION = new MINASInterceptor();
-
 
     public static void main(String[] args) throws IOException {
 
@@ -100,11 +99,11 @@ public class Main {
 
         final MINASController minasController = minasBuilder.build();
 
-        FileReader fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_ini"));
+        FileReader fileReader = new FileReader(new File("datasets/MOA3_fold1_ini"));
         DSFileReader dsFileReader = new DSFileReader(",", fileReader);
         DSClassifierExecutor.start(minasController, dsFileReader, true, 1000);
 
-        fileReader = new FileReader(new File("/home/douglas444/Dropbox/workspace/MOA3_fold1_onl"));
+        fileReader = new FileReader(new File("datasets/MOA3_fold1_onl"));
         dsFileReader = new DSFileReader(",", fileReader);
         DSClassifierExecutor.start(minasController, dsFileReader, true, 1000);
 
