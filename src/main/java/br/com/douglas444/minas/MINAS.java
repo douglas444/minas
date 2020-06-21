@@ -3,7 +3,7 @@ package br.com.douglas444.minas;
 import br.com.douglas444.minas.heater.Heater;
 import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.minas.interceptor.context.NoveltyDetectionContext;
-import br.com.douglas444.mltk.clustering.kmeans.KMeans;
+import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
@@ -97,7 +97,7 @@ public class MINAS {
 
     private void detectNoveltyAndUpdate() {
 
-        final List<Cluster> clusters = KMeans
+        final List<Cluster> clusters = KMeansPlusPlus
                 .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.randomGeneratorSeed)
                 .stream()
                 .filter(cluster -> cluster.getSize() >= this.minimumClusterSize)
