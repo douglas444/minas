@@ -16,14 +16,14 @@ public class AgglomerativeBuffer {
     private final List<MicroCluster> buffer;
     private final int initialDataSize;
     private final int bufferSize;
-    private final long seed;
+    private final Random random;
     private final int label;
 
-    public AgglomerativeBuffer(int label, int initialDataSize, int bufferSize, long seed) {
+    public AgglomerativeBuffer(int label, int initialDataSize, int bufferSize, Random random) {
 
         this.label = label;
         this.isActive = false;
-        this.seed = seed;
+        this.random = random;
         this.initialDataSize = initialDataSize;
         this.bufferSize = bufferSize;
         this.initialData = new ArrayList<>();
@@ -44,7 +44,7 @@ public class AgglomerativeBuffer {
                     throw new IllegalStateException("not enough samples for agglomerative buffer");
                 }
 
-                final List<Cluster> clusters = KMeans.execute(this.initialData, this.bufferSize, this.seed);
+                final List<Cluster> clusters = KMeans.execute(this.initialData, this.bufferSize, this.random);
 
                 this.initialData.clear();
 

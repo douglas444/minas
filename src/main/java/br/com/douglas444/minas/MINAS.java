@@ -28,7 +28,7 @@ public class MINAS {
     private final int windowSize;
     private final int microClusterLifespan;
     private final int sampleLifespan;
-    private final long randomGeneratorSeed;
+    private final Random random;
     private final int noveltyDetectionNumberOfClusters;
     private final Heater heater;
 
@@ -59,10 +59,10 @@ public class MINAS {
         this.microClusterLifespan = microClusterLifespan;
         this.sampleLifespan = sampleLifespan;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
-        this.randomGeneratorSeed = randomGeneratorSeed;
+        this.random = new Random(randomGeneratorSeed);
 
         this.interceptorCollection = (interceptorCollection == null) ? new MINASInterceptor() : interceptorCollection;
-        this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel, this.randomGeneratorSeed);
+        this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel, this.random);
         this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
         this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
         this.confusionMatrix = new DynamicConfusionMatrix();
@@ -98,7 +98,7 @@ public class MINAS {
     private void detectNoveltyAndUpdate() {
 
         final List<Cluster> clusters = KMeansPlusPlus
-                .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.randomGeneratorSeed)
+                .execute(this.temporaryMemory, this.noveltyDetectionNumberOfClusters, this.random)
                 .stream()
                 .filter(cluster -> cluster.getSize() >= this.minimumClusterSize)
                 .sorted(Comparator.comparing(cluster -> cluster.getMostRecentSample().getT()))

@@ -6,19 +6,20 @@ import br.com.douglas444.mltk.datastructure.Sample;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class Heater {
 
     private final int k;
-    private final long seed;
+    private final Random random;
     private final int initialBufferSize;
     private final HashMap<Integer, AgglomerativeBuffer> agglomerativeBufferByLabel;
 
-    public Heater(int initialBufferSize, int k, long seed) {
+    public Heater(int initialBufferSize, int k, Random random) {
 
         this.initialBufferSize = initialBufferSize;
         this.k = k;
-        this.seed = seed;
+        this.random = random;
         this.agglomerativeBufferByLabel = new HashMap<>();
 
     }
@@ -28,7 +29,7 @@ public class Heater {
         final int label = sample.getY();
 
         this.agglomerativeBufferByLabel.putIfAbsent(label,
-                new AgglomerativeBuffer(label, this.initialBufferSize, this.k, this.seed));
+                new AgglomerativeBuffer(label, this.initialBufferSize, this.k, this.random));
 
         final AgglomerativeBuffer ab = this.agglomerativeBufferByLabel.get(label);
         ab.add(sample);
