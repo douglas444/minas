@@ -125,9 +125,16 @@ public class AgglomerativeBuffer {
     }
 
     public List<MicroCluster> getBuffer() {
+
         if (!this.isActive) {
-            throw new IllegalStateException("agglomerative buffer not active");
+
+            return KMeans.execute(this.initialData, this.bufferSize, this.random)
+                    .stream()
+                    .map(cluster -> new MicroCluster(cluster, this.label, MicroClusterCategory.KNOWN))
+                    .collect(Collectors.toList());
+
         }
+
         return this.buffer;
     }
 
