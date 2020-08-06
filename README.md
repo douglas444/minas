@@ -14,10 +14,10 @@ maven
 ds-framework https://github.com/douglas444/ds-framework
 mltk https://github.com/douglas444/mltk
 
-# compilation
+# installation
 
-mvn clean compile
+mvn clean install
 
 # execution
 
-mvn exec:java -Dexec.mainClass=br.com.douglas444.examples.Main
+This is a library. You can use the MINASTest.java test file as an example of how to instantiate a MINAS object and execute it.
