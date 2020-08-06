@@ -12,30 +12,27 @@ public class DecisionModelContext implements Context {
     private Sample sampleTarget;
     private MicroCluster microClusterTarget;
 
-    public DecisionModelContext decisionModel(List<MicroCluster> decisionModel) {
-        this.decisionModel = decisionModel;
-        return this;
-    }
-
-    public DecisionModelContext sampleTarget(Sample sampleTarget) {
-        this.sampleTarget = sampleTarget;
-        return this;
-    }
-
-    public DecisionModelContext microClusterTarget(MicroCluster microClusterTarget) {
-        this.microClusterTarget = microClusterTarget;
-        return this;
-    }
-
     public List<MicroCluster> getDecisionModel() {
         return decisionModel;
+    }
+
+    public void setDecisionModel(List<MicroCluster> decisionModel) {
+        this.decisionModel = decisionModel;
     }
 
     public Sample getSampleTarget() {
         return sampleTarget;
     }
 
+    public void setSampleTarget(Sample sampleTarget) {
+        this.sampleTarget = sampleTarget;
+    }
+
     public MicroCluster getMicroClusterTarget() {
         return microClusterTarget;
+    }
+
+    public void setMicroClusterTarget(MicroCluster microClusterTarget) {
+        this.microClusterTarget = microClusterTarget;
     }
 }

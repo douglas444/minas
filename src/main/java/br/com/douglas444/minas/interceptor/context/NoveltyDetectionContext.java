@@ -14,39 +14,35 @@ public class NoveltyDetectionContext implements Context {
     private List<Sample> targetSamples;
     private MicroCluster closestMicroCluster;
 
-    public NoveltyDetectionContext minas(MINAS minas) {
-        this.minas = minas;
-        return this;
-    }
-
-    public NoveltyDetectionContext targetMicroCluster(MicroCluster targetMicroCluster) {
-        this.targetMicroCluster = targetMicroCluster;
-        return this;
-    }
-
-    public NoveltyDetectionContext targetSamples(List<Sample> targetSamples) {
-        this.targetSamples = targetSamples;
-        return this;
-    }
-
-    public NoveltyDetectionContext closestMicroCluster(MicroCluster closestMicroCluster) {
-        this.closestMicroCluster = closestMicroCluster;
-        return this;
-    }
-
     public MINAS getMinas() {
         return minas;
+    }
+
+    public void setMinas(MINAS minas) {
+        this.minas = minas;
     }
 
     public MicroCluster getTargetMicroCluster() {
         return targetMicroCluster;
     }
 
+    public void setTargetMicroCluster(MicroCluster targetMicroCluster) {
+        this.targetMicroCluster = targetMicroCluster;
+    }
+
     public List<Sample> getTargetSamples() {
         return targetSamples;
     }
 
+    public void setTargetSamples(List<Sample> targetSamples) {
+        this.targetSamples = targetSamples;
+    }
+
     public MicroCluster getClosestMicroCluster() {
         return closestMicroCluster;
+    }
+
+    public void setClosestMicroCluster(MicroCluster closestMicroCluster) {
+        this.closestMicroCluster = closestMicroCluster;
     }
 }

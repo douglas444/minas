@@ -1,8 +1,6 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierBuilder;
-import br.com.douglas444.minas.MINAS;
-import br.com.douglas444.minas.MINASController;
 import br.com.douglas444.minas.interceptor.MINASInterceptor;
 
 public class MINASBuilder implements DSClassifierBuilder {
@@ -18,7 +16,7 @@ public class MINASBuilder implements DSClassifierBuilder {
     private final int heaterNumberOfClustersPerLabel;
     private final int noveltyDetectionNumberOfClusters;
     private final long randomGeneratorSeed;
-    private final MINASInterceptor interceptorCollection;
+    private final MINASInterceptor interceptor;
 
     public MINASBuilder(int temporaryMemoryMaxSize,
                         int minimumClusterSize,
@@ -31,7 +29,7 @@ public class MINASBuilder implements DSClassifierBuilder {
                         int heaterNumberOfClustersPerLabel,
                         int noveltyDetectionNumberOfClusters,
                         long randomGeneratorSeed,
-                        MINASInterceptor interceptorCollection) {
+                        MINASInterceptor interceptor) {
 
         this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
         this.minimumClusterSize = minimumClusterSize;
@@ -44,7 +42,7 @@ public class MINASBuilder implements DSClassifierBuilder {
         this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
-        this.interceptorCollection = interceptorCollection;
+        this.interceptor = interceptor;
 
     }
 
@@ -61,7 +59,7 @@ public class MINASBuilder implements DSClassifierBuilder {
                 this.heaterNumberOfClustersPerLabel,
                 this.noveltyDetectionNumberOfClusters,
                 this.randomGeneratorSeed,
-                this.interceptorCollection);
+                this.interceptor);
 
         return new MINASController(minas);
 

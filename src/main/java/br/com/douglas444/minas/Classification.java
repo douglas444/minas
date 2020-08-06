@@ -3,12 +3,12 @@ package br.com.douglas444.minas;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class ClassificationResult {
+public class Classification {
 
     private final MicroCluster closestMicroCluster;
     private final boolean explained;
 
-    public ClassificationResult(MicroCluster closestMicroCluster, boolean explained) {
+    public Classification(MicroCluster closestMicroCluster, boolean explained) {
 
         if (explained && closestMicroCluster == null) {
             throw new IllegalArgumentException();

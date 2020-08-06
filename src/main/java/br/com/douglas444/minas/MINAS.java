@@ -32,7 +32,7 @@ public class MINAS {
     private final int noveltyDetectionNumberOfClusters;
     private final Heater heater;
 
-    private final MINASInterceptor interceptorCollection;
+    private final MINASInterceptor interceptor;
 
     public MINAS(int temporaryMemoryMaxSize,
                  int minimumClusterSize,
@@ -45,7 +45,7 @@ public class MINAS {
                  int heaterNumberOfClustersPerLabel,
                  int noveltyDetectionNumberOfClusters,
                  long randomGeneratorSeed,
-                 MINASInterceptor interceptorCollection) {
+                 MINASInterceptor interceptor) {
 
         this.timestamp = 1;
         this.noveltyCount = 0;
@@ -61,10 +61,10 @@ public class MINAS {
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.random = new Random(randomGeneratorSeed);
 
-        this.interceptorCollection = (interceptorCollection == null) ? new MINASInterceptor() : interceptorCollection;
+        this.interceptor = (interceptor == null) ? new MINASInterceptor() : interceptor;
         this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel, this.random);
-        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
-        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptorCollection);
+        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptor);
+        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptor);
         this.confusionMatrix = new DynamicConfusionMatrix();
 
     }
@@ -115,42 +115,42 @@ public class MINAS {
 
             this.decisionModel.classify(micro).ifExplainedOrElse((closest) -> {
 
-                this.interceptorCollection.MICRO_CLUSTER_EXPLAINED_INTERCEPTOR
-                        .with(new NoveltyDetectionContext()
-                                .minas(this)
-                                .closestMicroCluster(closest)
-                                .targetMicroCluster(micro)
-                                .targetSamples(cluster.getSamples()))
-                        .executeOrDefault(() -> {
-                            this.addExtension(micro, closest);
-                        });
+                final NoveltyDetectionContext context = new NoveltyDetectionContext();
+                context.setMinas(this);
+                context.setClosestMicroCluster(closest);
+                context.setTargetMicroCluster(micro);
+                context.setTargetSamples(cluster.getSamples());
+
+                this.interceptor.MICRO_CLUSTER_EXPLAINED.with(context).executeOrDefault(() -> {
+                    this.addExtension(micro, closest);
+                });
 
             }, () -> {
 
                 this.sleepMemory.classify(micro).ifExplainedOrElse((closest) -> {
 
-                    this.interceptorCollection.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP_INTERCEPTOR
-                            .with(new NoveltyDetectionContext()
-                                    .minas(this)
-                                    .closestMicroCluster(closest)
-                                    .targetMicroCluster(micro)
-                                    .targetSamples(cluster.getSamples()))
-                            .executeOrDefault(() -> {
-                                this.awake(micro);
-                                this.addExtension(micro, closest);
-                            });
+                    final NoveltyDetectionContext context = new NoveltyDetectionContext();
+                    context.setMinas(this);
+                    context.setClosestMicroCluster(closest);
+                    context.setTargetMicroCluster(micro);
+                    context.setTargetSamples(cluster.getSamples());
+
+                    this.interceptor.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP.with(context).executeOrDefault(() -> {
+                        this.awake(micro);
+                        this.addExtension(micro, closest);
+                    });
 
                 }, (optionalClosest) -> {
 
-                    this.interceptorCollection.MICRO_CLUSTER_UNEXPLAINED_INTERCEPTOR
-                            .with(new NoveltyDetectionContext()
-                                    .minas(this)
-                                    .closestMicroCluster(optionalClosest.orElse(null))
-                                    .targetMicroCluster(micro)
-                                    .targetSamples(cluster.getSamples()))
-                            .executeOrDefault(() -> {
-                                this.addNovelty(micro);
-                            });
+                    final NoveltyDetectionContext context = new NoveltyDetectionContext();
+                    context.setMinas(this);
+                    context.setClosestMicroCluster(optionalClosest.orElse(null));
+                    context.setTargetMicroCluster(micro);
+                    context.setTargetSamples(cluster.getSamples());
+
+                    this.interceptor.MICRO_CLUSTER_UNEXPLAINED.with(context).executeOrDefault(() -> {
+                        this.addNovelty(micro);
+                    });
                 });
             });
 
@@ -162,18 +162,18 @@ public class MINAS {
         }
     }
 
-    public ClassificationResult process(final Sample sample) {
+    public Classification process(final Sample sample) {
 
         if (!this.warmed) {
             this.warmUp(sample);
-            return new ClassificationResult(null, false);
+            return new Classification(null, false);
         }
 
         sample.setT(this.timestamp);
 
-        final ClassificationResult classificationResult = this.decisionModel.classify(sample);
+        final Classification classification = this.decisionModel.classify(sample);
 
-        classificationResult.ifExplainedOrElse((closestMicroCluster) -> {
+        classification.ifExplainedOrElse((closestMicroCluster) -> {
 
             this.confusionMatrix.addPrediction(sample.getY(), closestMicroCluster.getLabel(),
                     closestMicroCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
@@ -195,7 +195,7 @@ public class MINAS {
 
         ++this.timestamp;
 
-        return classificationResult;
+        return classification;
 
     }
 
@@ -216,10 +216,6 @@ public class MINAS {
         this.decisionModel.merge(microCluster);
     }
 
-    public List<MicroCluster> getDecisionModel() {
-        return this.decisionModel.getMicroClusters();
-    }
-
     public long getTimestamp() {
         return timestamp - 1;
     }
@@ -236,12 +232,12 @@ public class MINAS {
         return this.confusionMatrix.unkR();
     }
 
-    public boolean isWarmed() {
-        return warmed;
-    }
-
     public int getNoveltyCount() {
         return noveltyCount;
+    }
+
+    public List<MicroCluster> getDecisionModel() {
+        return this.decisionModel.getMicroClusters();
     }
 
 }

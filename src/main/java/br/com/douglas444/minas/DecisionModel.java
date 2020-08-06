@@ -12,60 +12,59 @@ import java.util.stream.Collectors;
 class DecisionModel {
 
     private final boolean incrementallyUpdate;
-    private final MINASInterceptor interceptorCollection;
+    private final MINASInterceptor interceptor;
     private final List<MicroCluster> microClusters;
 
-    DecisionModel(boolean incrementallyUpdate, MINASInterceptor interceptorCollection) {
+    DecisionModel(boolean incrementallyUpdate, MINASInterceptor interceptor) {
 
         this.incrementallyUpdate = incrementallyUpdate;
-        this.interceptorCollection = interceptorCollection;
+        this.interceptor = interceptor;
         this.microClusters = new ArrayList<>();
     }
 
-    ClassificationResult classify(final Sample sample) {
+    Classification classify(final Sample sample) {
 
-        final ClassificationResult classificationResult = this.interceptorCollection.SAMPLE_CLASSIFIER_INTERCEPTOR
-                .with(new DecisionModelContext()
-                        .sampleTarget(sample)
-                        .decisionModel(this.microClusters))
-                .executeOrDefault(() -> {
+        final DecisionModelContext context = new DecisionModelContext();
+        context.setDecisionModel(this.microClusters);
+        context.setSampleTarget(sample);
+
+        final Classification classification = this.interceptor.SAMPLE_CLASSIFIER.with(context).executeOrDefault(() -> {
 
                     if (microClusters.isEmpty()) {
-                        return new ClassificationResult(null, false);
+                        return new Classification(null, false);
                     }
 
                     final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample,
                             microClusters);
-
                     final double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
                     if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
-                        return new ClassificationResult(closestMicroCluster, true);
+                        return new Classification(closestMicroCluster, true);
                     }
 
-                    return new ClassificationResult(closestMicroCluster, false);
+                    return new Classification(closestMicroCluster, false);
                 });
 
-        classificationResult.ifExplained((closestMicroCluster) -> {
+        classification.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
             if (this.incrementallyUpdate) {
                 closestMicroCluster.update(sample);
             }
         });
 
-        return classificationResult;
+        return classification;
     }
 
-    ClassificationResult classify(final MicroCluster microCluster) {
+    Classification classify(final MicroCluster microCluster) {
 
-        return this.interceptorCollection.MICRO_CLUSTER_CLASSIFIER_INTERCEPTOR
-                .with(new DecisionModelContext()
-                        .microClusterTarget(microCluster)
-                        .decisionModel(this.microClusters))
-                .executeOrDefault(() -> {
+        final DecisionModelContext context = new DecisionModelContext();
+        context.setDecisionModel(this.microClusters);
+        context.setMicroClusterTarget(microCluster);
+
+        return this.interceptor.MICRO_CLUSTER_CLASSIFIER.with(context).executeOrDefault(() -> {
 
                     if (microClusters.isEmpty()) {
-                        return new ClassificationResult(null, false);
+                        return new Classification(null, false);
                     }
 
                     final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
@@ -73,10 +72,10 @@ class DecisionModel {
 
                     if (distance <= closestMicroCluster.calculateStandardDeviation()
                             + microCluster.calculateStandardDeviation()) {
-                        return new ClassificationResult(closestMicroCluster, true);
+                        return new Classification(closestMicroCluster, true);
                     }
 
-                    return new ClassificationResult(closestMicroCluster, false);
+                    return new Classification(closestMicroCluster, false);
                 });
     }
 
