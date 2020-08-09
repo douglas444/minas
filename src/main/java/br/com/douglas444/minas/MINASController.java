@@ -41,7 +41,7 @@ public class MINASController implements DSClassifierController {
         return this.minas.getTimestamp();
     }
 
-    public DynamicConfusionMatrix getDynamicConfusionMatrixString() {
+    public DynamicConfusionMatrix getDynamicConfusionMatrix() {
         return this.minas.getConfusionMatrix();
     }
 
