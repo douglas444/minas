@@ -9,6 +9,7 @@ import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MINAS {
@@ -115,11 +116,14 @@ public class MINAS {
 
             this.decisionModel.classify(micro).ifExplainedOrElse((closest) -> {
 
-                final NoveltyDetectionContext context = new NoveltyDetectionContext();
-                context.setMinas(this);
-                context.setClosestMicroCluster(closest);
-                context.setTargetMicroCluster(micro);
-                context.setTargetSamples(cluster.getSamples());
+                final NoveltyDetectionContext context = new NoveltyDetectionContext()
+                        .setClosestMicroCluster(closest)
+                        .setTargetMicroCluster(micro)
+                        .setTargetSamples(cluster.getSamples())
+                        .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                        .setAddExtension(this::addExtension)
+                        .setAddNovelty(this::addNovelty)
+                        .setAwake(this::awake);
 
                 this.interceptor.MICRO_CLUSTER_EXPLAINED.with(context).executeOrDefault(() -> {
                     this.addExtension(micro, closest);
@@ -129,11 +133,14 @@ public class MINAS {
 
                 this.sleepMemory.classify(micro).ifExplainedOrElse((closest) -> {
 
-                    final NoveltyDetectionContext context = new NoveltyDetectionContext();
-                    context.setMinas(this);
-                    context.setClosestMicroCluster(closest);
-                    context.setTargetMicroCluster(micro);
-                    context.setTargetSamples(cluster.getSamples());
+                    final NoveltyDetectionContext context = new NoveltyDetectionContext()
+                            .setClosestMicroCluster(closest)
+                            .setTargetMicroCluster(micro)
+                            .setTargetSamples(cluster.getSamples())
+                            .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                            .setAddExtension(this::addExtension)
+                            .setAddNovelty(this::addNovelty)
+                            .setAwake(this::awake);
 
                     this.interceptor.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP.with(context).executeOrDefault(() -> {
                         this.awake(micro);
@@ -142,11 +149,14 @@ public class MINAS {
 
                 }, (optionalClosest) -> {
 
-                    final NoveltyDetectionContext context = new NoveltyDetectionContext();
-                    context.setMinas(this);
-                    context.setClosestMicroCluster(optionalClosest.orElse(null));
-                    context.setTargetMicroCluster(micro);
-                    context.setTargetSamples(cluster.getSamples());
+                    final NoveltyDetectionContext context = new NoveltyDetectionContext()
+                            .setClosestMicroCluster(optionalClosest.orElse(null))
+                            .setTargetMicroCluster(micro)
+                            .setTargetSamples(cluster.getSamples())
+                            .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                            .setAddExtension(this::addExtension)
+                            .setAddNovelty(this::addNovelty)
+                            .setAwake(this::awake);
 
                     this.interceptor.MICRO_CLUSTER_UNEXPLAINED.with(context).executeOrDefault(() -> {
                         this.addNovelty(micro);
@@ -199,18 +209,18 @@ public class MINAS {
 
     }
 
-    public void awake(MicroCluster microCluster) {
+    private void awake(MicroCluster microCluster) {
         this.sleepMemory.remove(microCluster);
         this.decisionModel.merge(microCluster);
     }
 
-    public void addNovelty(MicroCluster microCluster) {
+    private void addNovelty(MicroCluster microCluster) {
         microCluster.setMicroClusterCategory(MicroClusterCategory.NOVELTY);
         microCluster.setLabel(this.noveltyCount++);
         this.decisionModel.merge(microCluster);
     }
 
-    public void addExtension(MicroCluster microCluster, MicroCluster closestMicroCluster) {
+    private void addExtension(MicroCluster microCluster, MicroCluster closestMicroCluster) {
         microCluster.setMicroClusterCategory(closestMicroCluster.getMicroClusterCategory());
         microCluster.setLabel(closestMicroCluster.getLabel());
         this.decisionModel.merge(microCluster);
@@ -234,10 +244,6 @@ public class MINAS {
 
     public int getNoveltyCount() {
         return noveltyCount;
-    }
-
-    public List<MicroCluster> getDecisionModel() {
-        return this.decisionModel.getMicroClusters();
     }
 
 }
