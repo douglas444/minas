@@ -25,7 +25,7 @@ class DecisionModel {
     Classification classify(final Sample sample) {
 
         final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(this.microClusters)
+                .setDecisionModel(new ArrayList<>(this.microClusters))
                 .setSampleTarget(sample);
 
         final Classification classification = this.interceptor.SAMPLE_CLASSIFIER.with(context).executeOrDefault(() -> {
@@ -57,7 +57,7 @@ class DecisionModel {
     Classification classify(final MicroCluster microCluster) {
 
         final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(this.microClusters)
+                .setDecisionModel(new ArrayList<>(this.microClusters))
                 .setMicroClusterTarget(microCluster);
 
         return this.interceptor.MICRO_CLUSTER_CLASSIFIER.with(context).executeOrDefault(() -> {

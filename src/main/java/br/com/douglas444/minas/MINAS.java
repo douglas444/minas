@@ -120,7 +120,7 @@ public class MINAS {
                         .setClosestMicroCluster(closest)
                         .setTargetMicroCluster(micro)
                         .setTargetSamples(cluster.getSamples())
-                        .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                        .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                         .setAddExtension(this::addExtension)
                         .setAddNovelty(this::addNovelty)
                         .setAwake(this::awake);
@@ -137,7 +137,7 @@ public class MINAS {
                             .setClosestMicroCluster(closest)
                             .setTargetMicroCluster(micro)
                             .setTargetSamples(cluster.getSamples())
-                            .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                            .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                             .setAddExtension(this::addExtension)
                             .setAddNovelty(this::addNovelty)
                             .setAwake(this::awake);
@@ -153,7 +153,7 @@ public class MINAS {
                             .setClosestMicroCluster(optionalClosest.orElse(null))
                             .setTargetMicroCluster(micro)
                             .setTargetSamples(cluster.getSamples())
-                            .setDecisionModelMicroClusters(decisionModel.getMicroClusters())
+                            .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                             .setAddExtension(this::addExtension)
                             .setAddNovelty(this::addNovelty)
                             .setAwake(this::awake);
