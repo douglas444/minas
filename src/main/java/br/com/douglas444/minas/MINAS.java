@@ -9,7 +9,6 @@ import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MINAS {
@@ -244,11 +243,11 @@ public class MINAS {
     }
 
     public double calculateCER() {
-        return this.confusionMatrix.cer();
+        return this.confusionMatrix.measureCER();
     }
 
     public double calculateUnkR() {
-        return this.confusionMatrix.unkR();
+        return this.confusionMatrix.measureUnkR();
     }
 
     public int getNoveltyCount() {

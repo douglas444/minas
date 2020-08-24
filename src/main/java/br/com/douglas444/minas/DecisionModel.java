@@ -7,6 +7,7 @@ import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 class DecisionModel {
@@ -24,11 +25,7 @@ class DecisionModel {
 
     Classification classify(final Sample sample) {
 
-        final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(new ArrayList<>(this.microClusters))
-                .setSampleTarget(sample);
-
-        final Classification classification = this.interceptor.SAMPLE_CLASSIFIER.with(context).executeOrDefault(() -> {
+        final Supplier<Classification> defaultAction = () -> {
 
             if (microClusters.isEmpty()) {
                 return new Classification(null, false);
@@ -42,7 +39,15 @@ class DecisionModel {
             }
 
             return new Classification(closestMicroCluster, false);
-        });
+        };
+
+        final DecisionModelContext context = new DecisionModelContext()
+                .setDecisionModel(new ArrayList<>(this.microClusters))
+                .setSampleTarget(sample)
+                .setDefaultAction(defaultAction);
+
+        final Classification classification = this.interceptor.SAMPLE_CLASSIFIER.with(context)
+                .executeOrDefault(defaultAction);
 
         classification.ifExplained((closestMicroCluster) -> {
             closestMicroCluster.setTimestamp(sample.getT());
@@ -56,11 +61,7 @@ class DecisionModel {
 
     Classification classify(final MicroCluster microCluster) {
 
-        final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(new ArrayList<>(this.microClusters))
-                .setMicroClusterTarget(microCluster);
-
-        return this.interceptor.MICRO_CLUSTER_CLASSIFIER.with(context).executeOrDefault(() -> {
+        final Supplier<Classification> defaultAction = () -> {
 
             if (microClusters.isEmpty()) {
                 return new Classification(null, false);
@@ -75,7 +76,15 @@ class DecisionModel {
             }
 
             return new Classification(closestMicroCluster, false);
-        });
+
+        };
+
+        final DecisionModelContext context = new DecisionModelContext()
+                .setDecisionModel(new ArrayList<>(this.microClusters))
+                .setMicroClusterTarget(microCluster)
+                .setDefaultAction(defaultAction);
+
+        return this.interceptor.MICRO_CLUSTER_CLASSIFIER.with(context).executeOrDefault(defaultAction);
     }
 
     double calculateSilhouette(final Cluster cluster) {

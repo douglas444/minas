@@ -66,13 +66,13 @@ public class MINASTest {
         System.out.println(minasController.getDynamicConfusionMatrix().toString());
 
         //Asserting UnkR
-        double unkR = minasController.getDynamicConfusionMatrix().unkR();
+        double unkR = minasController.getDynamicConfusionMatrix().measureUnkR();
         unkR = (double) Math.round(unkR * 10000) / 10000;
         assertEquals(0.1106, unkR, "The final value of UnkR differs from the expected " +
                 "for the dataset MOA3_fold1 with the following parameters configuration:\n" + parameters());
 
         //Asserting CER
-        double cer = minasController.getDynamicConfusionMatrix().cer();
+        double cer = minasController.getDynamicConfusionMatrix().measureCER();
         cer = (double) Math.round(cer * 10000) / 10000;
         assertEquals(0.0, cer, "The final value of CER differs from the expected for the " +
                 "dataset MOA3_fold1 with the following parameters configuration:\n" + parameters());

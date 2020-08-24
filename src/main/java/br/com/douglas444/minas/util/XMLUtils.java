@@ -42,15 +42,6 @@ public class XMLUtils {
         return integerValue;
     }
 
-    public static String getXMLStringAttribute(Node node, String attributeName) {
-        return node.getAttributes().getNamedItem(attributeName).getNodeValue();
-    }
-
-    public static boolean getXMLBooleanAttribute(Node node, String attributeName) {
-        String stringValue = node.getAttributes().getNamedItem(attributeName).getNodeValue();
-        return toBoolean(attributeName, stringValue);
-    }
-
     private static boolean toBoolean(String attributeName, String stringValue) {
         boolean booleanValue = false;
 
@@ -61,18 +52,5 @@ public class XMLUtils {
             System.exit(1);
         }
         return booleanValue;
-    }
-
-    public static List<Node> getXMLNodeChildNodes(Document document, String elementName) {
-        final NodeList nodeList = document.getElementsByTagName(elementName).item(0).getChildNodes();
-        final List<Node> nodes = new ArrayList<>();
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node node = nodeList.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                nodes.add(node);
-            }
-        }
-        return nodes;
     }
 }
