@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.util.MissingResourceException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -45,20 +46,22 @@ public class MINASTest {
         final MINASController minasController = minasBuilder.build();
 
         URL url = getClass().getClassLoader().getResource("MOA3_fold1_ini");
-        assert url != null;
-        File file = new File(url.getFile());
-
-        FileReader fileReader = new FileReader(file);
-        DSFileReader dsFileReader = new DSFileReader(",", fileReader);
-        DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
+        if (url == null) {
+            throw new MissingResourceException("File not found", MINASTest.class.getName(), "MOA3_fold1_ini");
+        }
+        File file1 = new File(url.getFile());
+        FileReader fileReader1 = new FileReader(file1);
 
         url = getClass().getClassLoader().getResource("MOA3_fold1_onl");
-        assert url != null;
-        file = new File(url.getFile());
+        if (url == null) {
+            throw new MissingResourceException("File not found", MINASTest.class.getName(), "MOA3_fold1_onl");
+        }
+        File file2 = new File(url.getFile());
+        FileReader fileReader2 = new FileReader(file2);
 
-        fileReader = new FileReader(file);
-        dsFileReader = new DSFileReader(",", fileReader);
-        DSClassifierExecutor.start(minasController, dsFileReader, true, 10000);
+        DSClassifierExecutor.start(minasController, true, 10000,
+                new DSFileReader(",", fileReader1), new DSFileReader(",", fileReader2));
+
 
         System.out.println(minasController.getDynamicConfusionMatrix().toString());
 

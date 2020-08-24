@@ -18,6 +18,7 @@ public class NoveltyDetectionContext implements Context {
     private BiConsumer<MicroCluster, MicroCluster> addExtension;
     private Consumer<MicroCluster> addNovelty;
     private Consumer<MicroCluster> awake;
+    private Runnable defaultAction;
 
     public NoveltyDetectionContext NoveltyDetectionContext() {
         return this;
@@ -83,6 +84,15 @@ public class NoveltyDetectionContext implements Context {
 
     public NoveltyDetectionContext setAwake(Consumer<MicroCluster> awake) {
         this.awake = awake;
+        return this;
+    }
+
+    public Runnable getDefaultAction() {
+        return defaultAction;
+    }
+
+    public NoveltyDetectionContext setDefaultAction(Runnable defaultAction) {
+        this.defaultAction = defaultAction;
         return this;
     }
 }

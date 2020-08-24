@@ -116,6 +116,10 @@ public class MINAS {
 
             this.decisionModel.classify(micro).ifExplainedOrElse((closest) -> {
 
+                final Runnable defaultAction = () -> {
+                    this.addExtension(micro, closest);
+                };
+
                 final NoveltyDetectionContext context = new NoveltyDetectionContext()
                         .setClosestMicroCluster(closest)
                         .setTargetMicroCluster(micro)
@@ -123,15 +127,19 @@ public class MINAS {
                         .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                         .setAddExtension(this::addExtension)
                         .setAddNovelty(this::addNovelty)
-                        .setAwake(this::awake);
+                        .setAwake(this::awake)
+                        .setDefaultAction(defaultAction);
 
-                this.interceptor.MICRO_CLUSTER_EXPLAINED.with(context).executeOrDefault(() -> {
-                    this.addExtension(micro, closest);
-                });
+                this.interceptor.MICRO_CLUSTER_EXPLAINED.with(context).executeOrDefault(defaultAction);
 
             }, () -> {
 
                 this.sleepMemory.classify(micro).ifExplainedOrElse((closest) -> {
+
+                    final Runnable defaultAction = () -> {
+                        this.awake(closest);
+                        this.addExtension(micro, closest);
+                    };
 
                     final NoveltyDetectionContext context = new NoveltyDetectionContext()
                             .setClosestMicroCluster(closest)
@@ -140,14 +148,16 @@ public class MINAS {
                             .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                             .setAddExtension(this::addExtension)
                             .setAddNovelty(this::addNovelty)
-                            .setAwake(this::awake);
+                            .setAwake(this::awake)
+                            .setDefaultAction(defaultAction);
 
-                    this.interceptor.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP.with(context).executeOrDefault(() -> {
-                        this.awake(micro);
-                        this.addExtension(micro, closest);
-                    });
+                    this.interceptor.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP.with(context).executeOrDefault(defaultAction);
 
                 }, (optionalClosest) -> {
+
+                    final Runnable defaultAction = () -> {
+                        this.addNovelty(micro);
+                    };
 
                     final NoveltyDetectionContext context = new NoveltyDetectionContext()
                             .setClosestMicroCluster(optionalClosest.orElse(null))
@@ -156,11 +166,10 @@ public class MINAS {
                             .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
                             .setAddExtension(this::addExtension)
                             .setAddNovelty(this::addNovelty)
-                            .setAwake(this::awake);
+                            .setAwake(this::awake)
+                            .setDefaultAction(defaultAction);
 
-                    this.interceptor.MICRO_CLUSTER_UNEXPLAINED.with(context).executeOrDefault(() -> {
-                        this.addNovelty(micro);
-                    });
+                    this.interceptor.MICRO_CLUSTER_UNEXPLAINED.with(context).executeOrDefault(defaultAction);
                 });
             });
 
