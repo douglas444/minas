@@ -35,38 +35,38 @@ public class MINASBuilder implements DSClassifierBuilder {
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.parse(configurationFile);
 
-        this.temporaryMemoryMaxSize = XMLUtils.getXMLNumericAttribute(document,
-                "noveltyDetection", "maxTemporaryMemorySize");
+        this.temporaryMemoryMaxSize = XMLUtils.getXMLNumericElementValue(document,
+                "maxTemporaryMemorySize");
 
-        this.minimumClusterSize = XMLUtils.getXMLNumericAttribute(document,
-                "noveltyDetection", "minimumClusterSize");
+        this.minimumClusterSize = XMLUtils.getXMLNumericElementValue(document,
+                "minimumClusterSize");
 
-        this.noveltyDetectionNumberOfClusters = XMLUtils.getXMLNumericAttribute(document,
-                "noveltyDetection", "numberOfClusters");
+        this.noveltyDetectionNumberOfClusters = XMLUtils.getXMLNumericElementValue(document,
+                "numberOfClusters");
 
-        this.windowSize = XMLUtils.getXMLNumericAttribute(document,
-                "window", "size");
+        this.windowSize = XMLUtils.getXMLNumericElementValue(document,
+                "size");
 
-        this.microClusterLifespan = XMLUtils.getXMLNumericAttribute(document,
-                "window", "microClusterLifeSpan");
+        this.microClusterLifespan = XMLUtils.getXMLNumericElementValue(document,
+                "microClusterLifeSpan");
 
-        this.sampleLifespan = XMLUtils.getXMLNumericAttribute(document,
-                "window", "sampleLifeSpan");
+        this.sampleLifespan = XMLUtils.getXMLNumericElementValue(document,
+                "sampleLifeSpan");
 
-        this.incrementallyUpdateDecisionModel = XMLUtils.getXMLBooleanAttribute(document,
-                "minas", "updateDecisionModel");
+        this.incrementallyUpdateDecisionModel = XMLUtils.getXMLBooleanElementValue(document,
+                "updateDecisionModel");
 
-        this.heaterCapacity = XMLUtils.getXMLNumericAttribute(document,
-                "heater", "capacity");
+        this.heaterCapacity = XMLUtils.getXMLNumericElementValue(document,
+                "capacity");
 
-        this.heaterInitialBufferSize = XMLUtils.getXMLNumericAttribute(document,
-                "heater", "initialBufferSize");
+        this.heaterInitialBufferSize = XMLUtils.getXMLNumericElementValue(document,
+                "initialBufferSize");
 
-        this.heaterNumberOfClustersPerLabel = XMLUtils.getXMLNumericAttribute(document,
-                "heater", "numberOfClustersPerLabel");
+        this.heaterNumberOfClustersPerLabel = XMLUtils.getXMLNumericElementValue(document,
+                "numberOfClustersPerLabel");
 
-        this.randomGeneratorSeed = XMLUtils.getXMLNumericAttribute(document,
-                "minas", "seed");
+        this.randomGeneratorSeed = XMLUtils.getXMLNumericElementValue(document,
+                "seed");
 
         this.interceptor = interceptor;
     }

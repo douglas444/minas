@@ -9,33 +9,29 @@ import java.util.List;
 
 public class XMLUtils {
 
-    public static boolean getXMLBooleanAttribute(Document document, String elementName, String attributeName) {
+    public static boolean getXMLBooleanElementValue(Document document, String elementName) {
 
         final String stringValue = document
                 .getElementsByTagName(elementName)
                 .item(0)
-                .getAttributes()
-                .getNamedItem(attributeName)
-                .getNodeValue();
+                .getTextContent();
 
-        return toBoolean(attributeName, stringValue);
+        return toBoolean(elementName, stringValue);
     }
 
-    public static int getXMLNumericAttribute(Document document, String elementName, String attributeName) {
+    public static int getXMLNumericElementValue(Document document, String elementName) {
 
         final String stringValue = document
                 .getElementsByTagName(elementName)
                 .item(0)
-                .getAttributes()
-                .getNamedItem(attributeName)
-                .getNodeValue();
+                .getTextContent();
 
         int integerValue = -1;
 
         try {
             integerValue = Integer.parseInt(stringValue);
         } catch (Exception e) {
-            System.out.println("Value for attribute " + attributeName + " must be a integer");
+            System.out.println("Value for attribute " + elementName + " must be a integer");
             System.exit(1);
         }
 

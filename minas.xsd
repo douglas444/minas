@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="minas" type="minasType"/>
+    <xs:complexType name="noveltyDetectionType">
+        <xs:sequence>
+            <xs:element type="xs:int" name="maxTemporaryMemorySize"/>
+            <xs:element type="xs:int" name="minimumClusterSize"/>
+            <xs:element type="xs:int" name="numberOfClusters"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="windowType">
+        <xs:sequence>
+            <xs:element type="xs:int" name="size"/>
+            <xs:element type="xs:int" name="sampleLifeSpan"/>
+            <xs:element type="xs:int" name="microClusterLifeSpan"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="heaterType">
+        <xs:sequence>
+            <xs:element type="xs:int" name="capacity"/>
+            <xs:element type="xs:int" name="initialBufferSize"/>
+            <xs:element type="xs:int" name="clustersPerLabel"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="minasType">
+        <xs:sequence>
+            <xs:element type="xs:int" name="seed"/>
+            <xs:element type="xs:boolean" name="updatedDecisionModel"/>
+            <xs:element type="noveltyDetectionType" name="noveltyDetection"/>
+            <xs:element type="windowType" name="window"/>
+            <xs:element type="heaterType" name="heater"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
