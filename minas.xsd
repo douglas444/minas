@@ -19,13 +19,13 @@
         <xs:sequence>
             <xs:element type="xs:int" name="capacity"/>
             <xs:element type="xs:int" name="initialBufferSize"/>
-            <xs:element type="xs:int" name="clustersPerLabel"/>
+            <xs:element type="xs:int" name="numberOfClustersPerLabel"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="minasType">
         <xs:sequence>
             <xs:element type="xs:int" name="seed"/>
-            <xs:element type="xs:boolean" name="updatedDecisionModel"/>
+            <xs:element type="xs:boolean" name="updateDecisionModel"/>
             <xs:element type="noveltyDetectionType" name="noveltyDetection"/>
             <xs:element type="windowType" name="window"/>
             <xs:element type="heaterType" name="heater"/>
