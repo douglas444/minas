@@ -33,6 +33,10 @@ public class MINASController implements DSClassifierController {
 
     }
 
+    public MINAS getMinas() {
+        return minas;
+    }
+
     public int getNoveltyCount() {
         return this.minas.getNoveltyCount();
     }

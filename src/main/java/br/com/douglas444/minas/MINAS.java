@@ -1,12 +1,12 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.minas.heater.Heater;
-import br.com.douglas444.minas.interceptor.MINASInterceptor;
-import br.com.douglas444.minas.interceptor.context.NoveltyDetectionContext;
 import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
 import br.com.douglas444.mltk.datastructure.Sample;
+import br.ufu.facom.pcf.core.Context;
+import br.ufu.facom.pcf.core.Interceptor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,7 +32,7 @@ public class MINAS {
     private final int noveltyDetectionNumberOfClusters;
     private final Heater heater;
 
-    private final MINASInterceptor interceptor;
+    private Interceptor interceptor;
 
     public MINAS(int temporaryMemoryMaxSize,
                  int minimumClusterSize,
@@ -44,8 +44,7 @@ public class MINAS {
                  int heaterInitialBufferSize,
                  int heaterNumberOfClustersPerLabel,
                  int noveltyDetectionNumberOfClusters,
-                 long randomGeneratorSeed,
-                 MINASInterceptor interceptor) {
+                 long randomGeneratorSeed) {
 
         this.timestamp = 1;
         this.noveltyCount = 0;
@@ -61,10 +60,9 @@ public class MINAS {
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.random = new Random(randomGeneratorSeed);
 
-        this.interceptor = (interceptor == null) ? new MINASInterceptor() : interceptor;
         this.heater = new Heater(heaterInitialBufferSize, heaterNumberOfClustersPerLabel, this.random);
-        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptor);
-        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel, this.interceptor);
+        this.decisionModel = new DecisionModel(incrementallyUpdateDecisionModel);
+        this.sleepMemory = new DecisionModel(incrementallyUpdateDecisionModel);
         this.confusionMatrix = new DynamicConfusionMatrix();
 
     }
@@ -111,70 +109,66 @@ public class MINAS {
             }
 
             this.temporaryMemory.removeAll(cluster.getSamples());
-            final MicroCluster micro = new MicroCluster(cluster, cluster.getMostRecentSample().getT());
+            final MicroCluster microCluster = new MicroCluster(cluster, cluster.getMostRecentSample().getT());
 
-            this.decisionModel.classify(micro).ifExplainedOrElse((closest) -> {
+            this.decisionModel.classify(microCluster).ifExplainedOrElse((closest) -> {
 
-                final Runnable defaultAction = () -> {
-                    this.addExtension(micro, closest);
-                };
+                if (this.interceptor != null) {
 
-                final NoveltyDetectionContext context = new NoveltyDetectionContext()
-                        .setClosestMicroCluster(closest)
-                        .setTargetMicroCluster(micro)
-                        .setTargetSamples(cluster.getSamples())
-                        .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
-                        .setAddExtension(this::addExtension)
-                        .setAddNovelty(this::addNovelty)
-                        .setAwake(this::awake)
-                        .setDefaultAction(defaultAction);
+                    final Context context = PCFUtil.buildContext(
+                            microCluster,
+                            cluster.getSamples(),
+                            MicroClusterCategory.KNOWN,
+                            this.decisionModel.getMicroClusters(),
+                            this.sleepMemory.getMicroClusters());
 
-                this.interceptor.MICRO_CLUSTER_EXPLAINED.with(context).executeOrDefault(defaultAction);
+                    this.interceptor.intercepting(context);
+                }
+
+                this.addExtension(microCluster, closest);
 
             }, () -> {
 
-                this.sleepMemory.classify(micro).ifExplainedOrElse((closest) -> {
+                this.sleepMemory.classify(microCluster).ifExplainedOrElse((closest) -> {
 
-                    final Runnable defaultAction = () -> {
-                        this.awake(closest);
-                        this.addExtension(micro, closest);
-                    };
+                    if (this.interceptor != null) {
 
-                    final NoveltyDetectionContext context = new NoveltyDetectionContext()
-                            .setClosestMicroCluster(closest)
-                            .setTargetMicroCluster(micro)
-                            .setTargetSamples(cluster.getSamples())
-                            .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
-                            .setAddExtension(this::addExtension)
-                            .setAddNovelty(this::addNovelty)
-                            .setAwake(this::awake)
-                            .setDefaultAction(defaultAction);
+                        final Context context = PCFUtil.buildContext(
+                                microCluster,
+                                cluster.getSamples(),
+                                MicroClusterCategory.KNOWN,
+                                this.decisionModel.getMicroClusters(),
+                                this.sleepMemory.getMicroClusters());
 
-                    this.interceptor.MICRO_CLUSTER_EXPLAINED_BY_ASLEEP.with(context).executeOrDefault(defaultAction);
+                        this.interceptor.intercepting(context);
+                    }
+
+                    this.awake(closest);
+                    this.addExtension(microCluster, closest);
 
                 }, (optionalClosest) -> {
 
-                    final Runnable defaultAction = () -> {
-                        this.addNovelty(micro);
-                    };
+                    if (this.interceptor != null) {
 
-                    final NoveltyDetectionContext context = new NoveltyDetectionContext()
-                            .setClosestMicroCluster(optionalClosest.orElse(null))
-                            .setTargetMicroCluster(micro)
-                            .setTargetSamples(cluster.getSamples())
-                            .setDecisionModelMicroClusters(new ArrayList<>(this.decisionModel.getMicroClusters()))
-                            .setAddExtension(this::addExtension)
-                            .setAddNovelty(this::addNovelty)
-                            .setAwake(this::awake)
-                            .setDefaultAction(defaultAction);
+                        final Context context = PCFUtil.buildContext(
+                                microCluster,
+                                cluster.getSamples(),
+                                MicroClusterCategory.NOVELTY,
+                                this.decisionModel.getMicroClusters(),
+                                this.sleepMemory.getMicroClusters());
 
-                    this.interceptor.MICRO_CLUSTER_UNEXPLAINED.with(context).executeOrDefault(defaultAction);
+                        this.interceptor.intercepting(context);
+                    }
+
+                    this.addNovelty(microCluster);
+
                 });
+
             });
 
             for (Sample sample : cluster.getSamples()) {
-                this.confusionMatrix.updatedDelayed(sample.getY(), micro.getLabel(),
-                        micro.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
+                this.confusionMatrix.updatedDelayed(sample.getY(), microCluster.getLabel(),
+                        microCluster.getMicroClusterCategory() == MicroClusterCategory.NOVELTY);
             }
 
         }
@@ -254,4 +248,7 @@ public class MINAS {
         return noveltyCount;
     }
 
+    public void setInterceptor(Interceptor interceptor) {
+        this.interceptor = interceptor;
+    }
 }

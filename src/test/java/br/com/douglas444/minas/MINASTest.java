@@ -40,8 +40,7 @@ public class MINASTest {
                 HEATER_INITIAL_BUFFER_SIZE,
                 HEATER_NUMBER_OF_CLUSTERS_PER_LABEL,
                 NOVELTY_DETECTION_NUMBER_OF_CLUSTERS,
-                RANDOM_GENERATOR_SEED,
-                null);
+                RANDOM_GENERATOR_SEED);
 
         final MINASController minasController = minasBuilder.build();
 

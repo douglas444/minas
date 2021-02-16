@@ -1,90 +1,60 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.minas.interceptor.context.DecisionModelContext;
-import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.mltk.datastructure.Cluster;
 import br.com.douglas444.mltk.util.SampleDistanceComparator;
 import br.com.douglas444.mltk.datastructure.Sample;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 class DecisionModel {
 
     private final boolean incrementallyUpdate;
-    private final MINASInterceptor interceptor;
     private final List<MicroCluster> microClusters;
 
-    DecisionModel(boolean incrementallyUpdate, MINASInterceptor interceptor) {
+    DecisionModel(boolean incrementallyUpdate) {
 
         this.incrementallyUpdate = incrementallyUpdate;
-        this.interceptor = interceptor;
         this.microClusters = new ArrayList<>();
     }
 
     Classification classify(final Sample sample) {
 
-        final Supplier<Classification> defaultAction = () -> {
+        if (microClusters.isEmpty()) {
+            return new Classification(null, false);
+        }
 
-            if (microClusters.isEmpty()) {
-                return new Classification(null, false);
-            }
+        final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
+        final double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
-            final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
-            final double distance = sample.distance(closestMicroCluster.calculateCentroid());
-
-            if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
-                return new Classification(closestMicroCluster, true);
-            }
-
-            return new Classification(closestMicroCluster, false);
-        };
-
-        final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(new ArrayList<>(this.microClusters))
-                .setSampleTarget(sample)
-                .setDefaultAction(defaultAction);
-
-        final Classification classification = this.interceptor.SAMPLE_CLASSIFIER.with(context)
-                .executeOrDefault(defaultAction);
-
-        classification.ifExplained((closestMicroCluster) -> {
+        if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {
             closestMicroCluster.setTimestamp(sample.getT());
             if (this.incrementallyUpdate) {
                 closestMicroCluster.update(sample);
             }
-        });
+            return new Classification(closestMicroCluster, true);
+        }
 
-        return classification;
+        return new Classification(closestMicroCluster, false);
+
     }
 
     Classification classify(final MicroCluster microCluster) {
 
-        final Supplier<Classification> defaultAction = () -> {
+        if (microClusters.isEmpty()) {
+            return new Classification(null, false);
+        }
 
-            if (microClusters.isEmpty()) {
-                return new Classification(null, false);
-            }
+        final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
+        final double distance = microCluster.distance(closestMicroCluster);
 
-            final MicroCluster closestMicroCluster = microCluster.calculateClosestMicroCluster(microClusters);
-            final double distance = microCluster.distance(closestMicroCluster);
+        if (distance <= closestMicroCluster.calculateStandardDeviation()
+                + microCluster.calculateStandardDeviation()) {
+            return new Classification(closestMicroCluster, true);
+        }
 
-            if (distance <= closestMicroCluster.calculateStandardDeviation()
-                    + microCluster.calculateStandardDeviation()) {
-                return new Classification(closestMicroCluster, true);
-            }
+        return new Classification(closestMicroCluster, false);
 
-            return new Classification(closestMicroCluster, false);
-
-        };
-
-        final DecisionModelContext context = new DecisionModelContext()
-                .setDecisionModel(new ArrayList<>(this.microClusters))
-                .setMicroClusterTarget(microCluster)
-                .setDefaultAction(defaultAction);
-
-        return this.interceptor.MICRO_CLUSTER_CLASSIFIER.with(context).executeOrDefault(defaultAction);
     }
 
     double calculateSilhouette(final Cluster cluster) {

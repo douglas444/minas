@@ -1,8 +1,8 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.dsframework.DSClassifierBuilder;
-import br.com.douglas444.minas.interceptor.MINASInterceptor;
 import br.com.douglas444.minas.util.XMLUtils;
+import br.ufu.facom.pcf.core.Interceptor;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -25,9 +25,9 @@ public class MINASBuilder implements DSClassifierBuilder {
     private final int heaterNumberOfClustersPerLabel;
     private final int noveltyDetectionNumberOfClusters;
     private final long randomGeneratorSeed;
-    private final MINASInterceptor interceptor;
+    private Interceptor interceptor;
 
-    public MINASBuilder(final String configurationFilePath, final MINASInterceptor interceptor)
+    public MINASBuilder(final String configurationFilePath)
             throws ParserConfigurationException, IOException, SAXException {
 
         File configurationFile = new File(configurationFilePath);
@@ -68,7 +68,32 @@ public class MINASBuilder implements DSClassifierBuilder {
         this.randomGeneratorSeed = XMLUtils.getXMLNumericElementValue(document,
                 "seed");
 
-        this.interceptor = interceptor;
+    }
+
+    public MINASBuilder(int temporaryMemoryMaxSize,
+                        int minimumClusterSize,
+                        int windowSize,
+                        int microClusterLifespan,
+                        int sampleLifespan,
+                        int heaterCapacity,
+                        boolean incrementallyUpdateDecisionModel,
+                        int heaterInitialBufferSize,
+                        int heaterNumberOfClustersPerLabel,
+                        int noveltyDetectionNumberOfClusters,
+                        long randomGeneratorSeed) {
+
+        this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
+        this.minimumClusterSize = minimumClusterSize;
+        this.windowSize = windowSize;
+        this.microClusterLifespan = microClusterLifespan;
+        this.sampleLifespan = sampleLifespan;
+        this.heaterCapacity = heaterCapacity;
+        this.incrementallyUpdateDecisionModel = incrementallyUpdateDecisionModel;
+        this.heaterInitialBufferSize = heaterInitialBufferSize;
+        this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
+        this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
+        this.randomGeneratorSeed = randomGeneratorSeed;
+
     }
 
     public MINASBuilder(int temporaryMemoryMaxSize,
@@ -82,7 +107,7 @@ public class MINASBuilder implements DSClassifierBuilder {
                         int heaterNumberOfClustersPerLabel,
                         int noveltyDetectionNumberOfClusters,
                         long randomGeneratorSeed,
-                        MINASInterceptor interceptor) {
+                        Interceptor interceptor) {
 
         this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
         this.minimumClusterSize = minimumClusterSize;
@@ -99,6 +124,7 @@ public class MINASBuilder implements DSClassifierBuilder {
 
     }
 
+    @Override
     public MINASController build() {
 
         final MINAS minas = new MINAS(this.temporaryMemoryMaxSize,
@@ -111,8 +137,9 @@ public class MINASBuilder implements DSClassifierBuilder {
                 this.heaterInitialBufferSize,
                 this.heaterNumberOfClustersPerLabel,
                 this.noveltyDetectionNumberOfClusters,
-                this.randomGeneratorSeed,
-                this.interceptor);
+                this.randomGeneratorSeed);
+
+        minas.setInterceptor(interceptor);
 
         return new MINASController(minas);
 
