@@ -31,7 +31,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>br.ufu.facom.pcf</groupId>
+            <groupId>br.ufu.facom</groupId>
             <artifactId>pcf-core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

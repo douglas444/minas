@@ -118,7 +118,7 @@ public class MINAS {
                     final Context context = PCFUtil.buildContext(
                             microCluster,
                             cluster.getSamples(),
-                            MicroClusterCategory.KNOWN,
+                            closest.getMicroClusterCategory(),
                             this.decisionModel.getMicroClusters(),
                             this.sleepMemory.getMicroClusters());
 
@@ -136,7 +136,7 @@ public class MINAS {
                         final Context context = PCFUtil.buildContext(
                                 microCluster,
                                 cluster.getSamples(),
-                                MicroClusterCategory.KNOWN,
+                                closest.getMicroClusterCategory(),
                                 this.decisionModel.getMicroClusters(),
                                 this.sleepMemory.getMicroClusters());
 

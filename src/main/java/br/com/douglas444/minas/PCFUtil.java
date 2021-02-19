@@ -83,19 +83,23 @@ public class PCFUtil {
     static ClusterSummary microClusterToClusterSummary(final MicroCluster microCluster) {
         return new ClusterSummary(){
 
+            final double[] centroidAttributes = microCluster.calculateCentroid().getX().clone();
+            final double standardDeviation = microCluster.calculateStandardDeviation();
+            final Integer label = microCluster.getLabel();
+
             @Override
             public double[] calculateCentroidAttributes() {
-                return microCluster.calculateCentroid().getX().clone();
+                return centroidAttributes;
             }
 
             @Override
             public double calculateStandardDeviation() {
-                return microCluster.calculateStandardDeviation();
+                return standardDeviation;
             }
 
             @Override
             public Integer getLabel() {
-                return microCluster.getLabel();
+                return label;
             }
         };
     }
