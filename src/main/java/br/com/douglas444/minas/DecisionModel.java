@@ -1,8 +1,7 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.mltk.datastructure.Cluster;
-import br.com.douglas444.mltk.util.SampleDistanceComparator;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.streams.datastructures.SampleDistanceComparator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +23,9 @@ class DecisionModel {
             return new Classification(null, false);
         }
 
-        final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, microClusters);
+        final MicroCluster closestMicroCluster = MicroCluster
+                .calculateClosestMicroCluster(sample, microClusters);
+
         final double distance = sample.distance(closestMicroCluster.calculateCentroid());
 
         if (distance <= closestMicroCluster.calculateStandardDeviation() * 2) {

@@ -1,7 +1,7 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.dsframework.DSClassifierExecutor;
-import br.com.douglas444.dsframework.DSFileReader;
+import br.com.douglas444.streams.StreamsFileReader;
+import br.com.douglas444.streams.processor.StreamsProcessorExecutor;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -48,18 +48,21 @@ public class MINASTest {
         if (url == null) {
             throw new MissingResourceException("File not found", MINASTest.class.getName(), "MOA3_fold1_ini");
         }
-        File file1 = new File(url.getFile());
-        FileReader fileReader1 = new FileReader(file1);
+        final File file1 = new File(url.getFile());
+        final FileReader fileReader1 = new FileReader(file1);
 
         url = getClass().getClassLoader().getResource("MOA3_fold1_onl");
         if (url == null) {
             throw new MissingResourceException("File not found", MINASTest.class.getName(), "MOA3_fold1_onl");
         }
-        File file2 = new File(url.getFile());
-        FileReader fileReader2 = new FileReader(file2);
+        final File file2 = new File(url.getFile());
+        final FileReader fileReader2 = new FileReader(file2);
 
-        DSClassifierExecutor.start(minasController, true, 10000,
-                new DSFileReader(",", fileReader1), new DSFileReader(",", fileReader2));
+        new StreamsProcessorExecutor().start(
+                minasController,
+                10000,
+                new StreamsFileReader(",", fileReader1),
+                new StreamsFileReader(",", fileReader2));
 
 
         System.out.println(minasController.getDynamicConfusionMatrix().toString());

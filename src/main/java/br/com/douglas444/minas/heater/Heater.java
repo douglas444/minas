@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.heater;
 
 import br.com.douglas444.minas.MicroCluster;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public class Heater {
     private final int initialBufferSize;
     private final HashMap<Integer, AgglomerativeBuffer> agglomerativeBufferByLabel;
 
-    public Heater(int initialBufferSize, int k, Random random) {
+    public Heater(final int initialBufferSize, final int k, final Random random) {
 
         this.initialBufferSize = initialBufferSize;
         this.k = k;

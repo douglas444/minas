@@ -1,8 +1,8 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.mltk.datastructure.Cluster;
-import br.com.douglas444.mltk.util.SampleDistanceComparator;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.streams.datastructures.SampleDistanceComparator;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,8 +15,13 @@ public class MicroCluster {
     private final double[] ls;
     private final double[] ss;
 
-    public MicroCluster(Long timestamp, Integer label, MicroClusterCategory microClusterCategory, int n, double[] ls,
-                        double[] ss) {
+    public MicroCluster(final Long timestamp,
+                        final Integer label,
+                        final MicroClusterCategory microClusterCategory,
+                        final int n,
+                        final double[] ls,
+                        final double[] ss) {
+
         this.timestamp = timestamp;
         this.label = label;
         this.microClusterCategory = microClusterCategory;
@@ -25,7 +30,7 @@ public class MicroCluster {
         this.ss = ss;
     }
 
-    public MicroCluster(Sample sample) {
+    public MicroCluster(final Sample sample) {
 
         final int dimensions = sample.getX().length;
 
@@ -36,7 +41,7 @@ public class MicroCluster {
         this.update(sample);
     }
 
-    public MicroCluster(Cluster cluster, Long timestamp) {
+    public MicroCluster(final Cluster cluster, final Long timestamp) {
 
         if (cluster.isEmpty()) {
             throw new IllegalArgumentException();
@@ -52,7 +57,9 @@ public class MicroCluster {
         cluster.getSamples().forEach(this::update);
     }
 
-    public MicroCluster(Cluster cluster, Integer label, MicroClusterCategory microClusterCategory) {
+    public MicroCluster(final Cluster cluster,
+                        final Integer label,
+                        final MicroClusterCategory microClusterCategory) {
 
         if (cluster.isEmpty()) {
             throw new IllegalArgumentException();
@@ -163,7 +170,8 @@ public class MicroCluster {
                         : (m1.timestamp != null ? m1.timestamp : m2.timestamp);
 
         final Integer label = m1.label;
-        final MicroClusterCategory microClusterCategory = MicroClusterCategory.valueOf(m1.microClusterCategory.name());
+        final MicroClusterCategory microClusterCategory = MicroClusterCategory
+                .valueOf(m1.microClusterCategory.name());
 
         for (int i = 0; i < ss.length; ++i) {
             ss[i] += m2.ss[i];
@@ -178,8 +186,8 @@ public class MicroCluster {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MicroCluster that = (MicroCluster) o;
-        return timestamp == that.timestamp &&
-                label.equals(that.label) &&
+        return Objects.equals(timestamp, that.timestamp) &&
+                Objects.equals(label, that.label) &&
                 n == that.n &&
                 microClusterCategory == that.microClusterCategory &&
                 Arrays.equals(ls, that.ls) &&

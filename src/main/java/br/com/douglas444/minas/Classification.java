@@ -18,14 +18,6 @@ public class Classification {
         this.explained = explained;
     }
 
-    public void ifExplained(final Consumer<MicroCluster> action) {
-
-        if (this.explained) {
-            action.accept(this.closestMicroCluster);
-        }
-
-    }
-
     public void ifExplainedOrElse(final Consumer<MicroCluster> consumer, final Runnable runnable) {
 
         if (this.explained) {

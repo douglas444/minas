@@ -1,10 +1,10 @@
 package br.com.douglas444.minas.heater;
 
+import br.com.douglas444.minas.Cluster;
+import br.com.douglas444.minas.KMeans;
 import br.com.douglas444.minas.MicroCluster;
 import br.com.douglas444.minas.MicroClusterCategory;
-import br.com.douglas444.mltk.clustering.kmeans.KMeans;
-import br.com.douglas444.mltk.datastructure.Cluster;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,7 +19,10 @@ public class AgglomerativeBuffer {
     private final Random random;
     private final int label;
 
-    public AgglomerativeBuffer(int label, int initialDataSize, int bufferSize, Random random) {
+    public AgglomerativeBuffer(final int label,
+                               final int initialDataSize,
+                               final int bufferSize,
+                               final Random random) {
 
         this.label = label;
         this.isActive = false;
@@ -56,14 +59,11 @@ public class AgglomerativeBuffer {
         } else {
 
             final MicroCluster closestMicroCluster = MicroCluster.calculateClosestMicroCluster(sample, this.buffer);
-            double distance = sample.distance(closestMicroCluster.calculateCentroid());
-
+            final double distance = sample.distance(closestMicroCluster.calculateCentroid());
             final double radius;
 
             if (closestMicroCluster.getN() > 1) {
-
                 radius = closestMicroCluster.calculateStandardDeviation() * 2;
-
             } else {
 
                 final List<MicroCluster> bufferSubSet = this.buffer.stream()
@@ -79,7 +79,7 @@ public class AgglomerativeBuffer {
                 closestMicroCluster.update(sample);
                 closestMicroCluster.setTimestamp(sample.getT());
             } else {
-                MicroCluster microCluster = new MicroCluster(sample);
+                final MicroCluster microCluster = new MicroCluster(sample);
                 microCluster.setLabel(sample.getY());
                 microCluster.setMicroClusterCategory(MicroClusterCategory.KNOWN);
                 this.add(microCluster);

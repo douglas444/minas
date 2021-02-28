@@ -1,18 +1,14 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.dsframework.DSClassifierBuilder;
 import br.com.douglas444.minas.util.XMLUtils;
+import br.com.douglas444.streams.processor.StreamsProcessorBuilder;
 import br.ufu.facom.pcf.core.Interceptor;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
-import java.io.IOException;
 
-public class MINASBuilder implements DSClassifierBuilder {
+public class MINASBuilder implements StreamsProcessorBuilder {
 
     private final int temporaryMemoryMaxSize;
     private final int minimumClusterSize;
@@ -28,12 +24,12 @@ public class MINASBuilder implements DSClassifierBuilder {
     private Interceptor interceptor;
 
     public MINASBuilder(final String configurationFilePath)
-            throws ParserConfigurationException, IOException, SAXException {
+            throws Exception {
 
-        File configurationFile = new File(configurationFilePath);
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        Document document = documentBuilder.parse(configurationFile);
+        final File configurationFile = new File(configurationFilePath);
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        final Document document = documentBuilder.parse(configurationFile);
 
         this.temporaryMemoryMaxSize = XMLUtils.getXMLNumericElementValue(document,
                 "maxTemporaryMemorySize");
@@ -70,17 +66,17 @@ public class MINASBuilder implements DSClassifierBuilder {
 
     }
 
-    public MINASBuilder(int temporaryMemoryMaxSize,
-                        int minimumClusterSize,
-                        int windowSize,
-                        int microClusterLifespan,
-                        int sampleLifespan,
-                        int heaterCapacity,
-                        boolean incrementallyUpdateDecisionModel,
-                        int heaterInitialBufferSize,
-                        int heaterNumberOfClustersPerLabel,
-                        int noveltyDetectionNumberOfClusters,
-                        long randomGeneratorSeed) {
+    public MINASBuilder(final int temporaryMemoryMaxSize,
+                        final int minimumClusterSize,
+                        final int windowSize,
+                        final int microClusterLifespan,
+                        final int sampleLifespan,
+                        final int heaterCapacity,
+                        final boolean incrementallyUpdateDecisionModel,
+                        final int heaterInitialBufferSize,
+                        final  int heaterNumberOfClustersPerLabel,
+                        final int noveltyDetectionNumberOfClusters,
+                        final long randomGeneratorSeed) {
 
         this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
         this.minimumClusterSize = minimumClusterSize;
@@ -96,18 +92,18 @@ public class MINASBuilder implements DSClassifierBuilder {
 
     }
 
-    public MINASBuilder(int temporaryMemoryMaxSize,
-                        int minimumClusterSize,
-                        int windowSize,
-                        int microClusterLifespan,
-                        int sampleLifespan,
-                        int heaterCapacity,
-                        boolean incrementallyUpdateDecisionModel,
-                        int heaterInitialBufferSize,
-                        int heaterNumberOfClustersPerLabel,
-                        int noveltyDetectionNumberOfClusters,
-                        long randomGeneratorSeed,
-                        Interceptor interceptor) {
+    public MINASBuilder(final int temporaryMemoryMaxSize,
+                        final int minimumClusterSize,
+                        final int windowSize,
+                        final int microClusterLifespan,
+                        final int sampleLifespan,
+                        final int heaterCapacity,
+                        final boolean incrementallyUpdateDecisionModel,
+                        final int heaterInitialBufferSize,
+                        final int heaterNumberOfClustersPerLabel,
+                        final int noveltyDetectionNumberOfClusters,
+                        final long randomGeneratorSeed,
+                        final Interceptor interceptor) {
 
         this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
         this.minimumClusterSize = minimumClusterSize;

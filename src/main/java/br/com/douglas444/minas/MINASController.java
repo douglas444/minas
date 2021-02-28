@@ -1,19 +1,17 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.dsframework.DSClassifierController;
-import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.DynamicConfusionMatrix;
+import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.streams.processor.StreamsProcessor;
 
 import java.util.Optional;
 
-public class MINASController implements DSClassifierController {
+public class MINASController implements StreamsProcessor {
 
     private final MINAS minas;
 
     public MINASController(MINAS minas) {
-
         this.minas = minas;
-
     }
 
     @Override

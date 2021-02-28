@@ -1,6 +1,6 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
 import br.ufu.facom.pcf.core.Category;
 import br.ufu.facom.pcf.core.ClusterSummary;
 import br.ufu.facom.pcf.core.Context;
@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class PCFUtil {
-
+public class PCF {
 
     public static Context buildContext(final MicroCluster pattern,
                                        final List<Sample> samples,
@@ -49,13 +48,13 @@ public class PCFUtil {
         final List<ClusterSummary> knownClusterSummaries = decisionModelMicroClusters
                 .stream()
                 .filter(microCluster -> microCluster.getMicroClusterCategory() != MicroClusterCategory.NOVELTY)
-                .map(PCFUtil::microClusterToClusterSummary)
+                .map(PCF::microClusterToClusterSummary)
                 .collect(Collectors.toList());
 
         knownClusterSummaries.addAll(sleepMemoryMicroClusters
                 .stream()
                 .filter(microCluster -> microCluster.getMicroClusterCategory() != MicroClusterCategory.NOVELTY)
-                .map(PCFUtil::microClusterToClusterSummary)
+                .map(PCF::microClusterToClusterSummary)
                 .collect(Collectors.toList()));
 
         context.setClusterSummaries(knownClusterSummaries);
@@ -88,12 +87,12 @@ public class PCFUtil {
             final Integer label = microCluster.getLabel();
 
             @Override
-            public double[] calculateCentroidAttributes() {
+            public double[] getCentroidAttributes() {
                 return centroidAttributes;
             }
 
             @Override
-            public double calculateStandardDeviation() {
+            public double getStandardDeviation() {
                 return standardDeviation;
             }
 

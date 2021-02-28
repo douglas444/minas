@@ -1,10 +1,8 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.minas.heater.Heater;
-import br.com.douglas444.mltk.clustering.kmeans.KMeansPlusPlus;
-import br.com.douglas444.mltk.datastructure.Cluster;
-import br.com.douglas444.mltk.datastructure.DynamicConfusionMatrix;
-import br.com.douglas444.mltk.datastructure.Sample;
+import br.com.douglas444.streams.datastructures.DynamicConfusionMatrix;
+import br.com.douglas444.streams.datastructures.Sample;
 import br.ufu.facom.pcf.core.Context;
 import br.ufu.facom.pcf.core.Interceptor;
 
@@ -34,17 +32,17 @@ public class MINAS {
 
     private Interceptor interceptor;
 
-    public MINAS(int temporaryMemoryMaxSize,
-                 int minimumClusterSize,
-                 int windowSize,
-                 int microClusterLifespan,
-                 int sampleLifespan,
-                 int heaterCapacity,
-                 boolean incrementallyUpdateDecisionModel,
-                 int heaterInitialBufferSize,
-                 int heaterNumberOfClustersPerLabel,
-                 int noveltyDetectionNumberOfClusters,
-                 long randomGeneratorSeed) {
+    public MINAS(final int temporaryMemoryMaxSize,
+                 final int minimumClusterSize,
+                 final int windowSize,
+                 final int microClusterLifespan,
+                 final int sampleLifespan,
+                 final int heaterCapacity,
+                 final boolean incrementallyUpdateDecisionModel,
+                 final int heaterInitialBufferSize,
+                 final int heaterNumberOfClustersPerLabel,
+                 final int noveltyDetectionNumberOfClusters,
+                 final long randomGeneratorSeed) {
 
         this.timestamp = 1;
         this.noveltyCount = 0;
@@ -115,14 +113,14 @@ public class MINAS {
 
                 if (this.interceptor != null) {
 
-                    final Context context = PCFUtil.buildContext(
+                    final Context context = PCF.buildContext(
                             microCluster,
                             cluster.getSamples(),
                             closest.getMicroClusterCategory(),
                             this.decisionModel.getMicroClusters(),
                             this.sleepMemory.getMicroClusters());
 
-                    this.interceptor.intercepting(context);
+                    this.interceptor.intercept(context);
                 }
 
                 this.addExtension(microCluster, closest);
@@ -133,14 +131,14 @@ public class MINAS {
 
                     if (this.interceptor != null) {
 
-                        final Context context = PCFUtil.buildContext(
+                        final Context context = PCF.buildContext(
                                 microCluster,
                                 cluster.getSamples(),
                                 closest.getMicroClusterCategory(),
                                 this.decisionModel.getMicroClusters(),
                                 this.sleepMemory.getMicroClusters());
 
-                        this.interceptor.intercepting(context);
+                        this.interceptor.intercept(context);
                     }
 
                     this.awake(closest);
@@ -150,14 +148,14 @@ public class MINAS {
 
                     if (this.interceptor != null) {
 
-                        final Context context = PCFUtil.buildContext(
+                        final Context context = PCF.buildContext(
                                 microCluster,
                                 cluster.getSamples(),
                                 MicroClusterCategory.NOVELTY,
                                 this.decisionModel.getMicroClusters(),
                                 this.sleepMemory.getMicroClusters());
 
-                        this.interceptor.intercepting(context);
+                        this.interceptor.intercept(context);
                     }
 
                     this.addNovelty(microCluster);
