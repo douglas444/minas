@@ -1,7 +1,7 @@
 package br.com.douglas444.minas.heater;
 
 import br.com.douglas444.minas.MicroCluster;
-import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.ndc.datastructures.Sample;
 
 import java.util.ArrayList;
 import java.util.HashMap;

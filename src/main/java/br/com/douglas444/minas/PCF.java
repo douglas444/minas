@@ -1,6 +1,6 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.ndc.datastructures.Sample;
 import br.ufu.facom.pcf.core.Category;
 import br.ufu.facom.pcf.core.ClusterSummary;
 import br.ufu.facom.pcf.core.Context;

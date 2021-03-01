@@ -1,8 +1,8 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.streams.datastructures.DynamicConfusionMatrix;
-import br.com.douglas444.streams.datastructures.Sample;
-import br.com.douglas444.streams.processor.StreamsProcessor;
+import br.com.douglas444.ndc.datastructures.DynamicConfusionMatrix;
+import br.com.douglas444.ndc.datastructures.Sample;
+import br.com.douglas444.ndc.processor.StreamsProcessor;
 
 import java.util.Optional;
 

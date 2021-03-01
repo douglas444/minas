@@ -1,10 +1,10 @@
 package br.com.douglas444.minas.heater;
 
-import br.com.douglas444.minas.Cluster;
-import br.com.douglas444.minas.KMeans;
 import br.com.douglas444.minas.MicroCluster;
 import br.com.douglas444.minas.MicroClusterCategory;
-import br.com.douglas444.streams.datastructures.Sample;
+import br.com.douglas444.ndc.algorithms.KMeans;
+import br.com.douglas444.ndc.datastructures.Cluster;
+import br.com.douglas444.ndc.datastructures.Sample;
 
 import java.util.*;
 import java.util.stream.Collectors;

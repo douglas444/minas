@@ -1,7 +1,7 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.streams.StreamsFileReader;
-import br.com.douglas444.streams.processor.StreamsProcessorExecutor;
+import br.com.douglas444.ndc.StreamsFileReader;
+import br.com.douglas444.ndc.processor.StreamsProcessorExecutor;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
