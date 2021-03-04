@@ -1,6 +1,6 @@
 package br.com.douglas444.minas;
 
-import br.com.douglas444.ndc.datastructures.Sample;
+import br.com.douglas444.streams.datastructures.Sample;
 import br.ufu.facom.pcf.core.Category;
 import br.ufu.facom.pcf.core.ClusterSummary;
 import br.ufu.facom.pcf.core.Context;
@@ -63,12 +63,15 @@ public class PCF {
                 .stream()
                 .map(Sample::getX)
                 .map(double[]::clone)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())
+                .toArray(new double[][]{}));
 
-        context.setSamplesLabels(samples
-                .stream()
-                .map(Sample::getY)
-                .collect(Collectors.toList()));
+        final int[] samplesLabels = new int[samples.size()];
+        for (int i = 0; i < samples.size(); ++i) {
+            samplesLabels[i] = samples.get(i).getY();
+        }
+
+        context.setSamplesLabels(samplesLabels);
 
         if (category == MicroClusterCategory.KNOWN) {
             context.setPredictedCategory(Category.KNOWN);

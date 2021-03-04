@@ -1,10 +1,10 @@
 package br.com.douglas444.minas;
 
 import br.com.douglas444.minas.heater.Heater;
-import br.com.douglas444.ndc.algorithms.KMeansPlusPlus;
-import br.com.douglas444.ndc.datastructures.Cluster;
-import br.com.douglas444.ndc.datastructures.DynamicConfusionMatrix;
-import br.com.douglas444.ndc.datastructures.Sample;
+import br.com.douglas444.streams.algorithms.KMeansPlusPlus;
+import br.com.douglas444.streams.datastructures.Cluster;
+import br.com.douglas444.streams.datastructures.DynamicConfusionMatrix;
+import br.com.douglas444.streams.datastructures.Sample;
 import br.ufu.facom.pcf.core.Context;
 import br.ufu.facom.pcf.core.Interceptor;
 
