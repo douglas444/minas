@@ -6,7 +6,9 @@ import br.com.douglas444.streams.algorithms.KMeans;
 import br.com.douglas444.streams.datastructures.Cluster;
 import br.com.douglas444.streams.datastructures.Sample;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class AgglomerativeBuffer {

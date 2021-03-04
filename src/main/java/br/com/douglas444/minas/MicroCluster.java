@@ -4,7 +4,10 @@ import br.com.douglas444.streams.datastructures.Cluster;
 import br.com.douglas444.streams.datastructures.Sample;
 import br.com.douglas444.streams.datastructures.SampleDistanceComparator;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MicroCluster {
