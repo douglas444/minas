@@ -21,7 +21,7 @@ Faria, E. R., Gama, J., & Carvalho, A. C. (2013, March). Novelty detection algor
 
 ## Using it
 
-Once you have installed this project, import it at your maven project by including the following dependency to your pom.xml (edit the version if necessary):
+Once you have installed minas, import it at your maven project by including the following dependency to your pom.xml (edit the version if necessary):
 
 ```
 <dependency>
@@ -31,4 +31,4 @@ Once you have installed this project, import it at your maven project by includi
 </dependency>
 ```
 
-Once MINAS is added to your project as a dependency, you can use the MINASTest.java test file as an example of how to instantiate the MINASController class and how to execute it.
+Once minas is added to your project as a dependency, you can use the MINASTest.java test file as an example of how to instantiate the MINASController class and how to execute it.
