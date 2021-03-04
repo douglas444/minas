@@ -5,6 +5,8 @@ An algorithm to address novelty detection in data streams multi-class problems
 
 Faria, E. R., Gama, J., & Carvalho, A. C. (2013, March). Novelty detection algorithm for data streams multi-class problems. In Proceedings of the 28th annual ACM symposium on applied computing (pp. 795-800).
 
+This implementation is compatible with pcf's Interceptable (https://github.com/douglas444/pcf).
+
 ## Requirements
 
 * Apache Maven 3.6.3 or higher
@@ -19,7 +21,7 @@ Faria, E. R., Gama, J., & Carvalho, A. C. (2013, March). Novelty detection algor
 
 ```mvn clean install```
 
-## Using it
+## Using it as maven dependency
 
 Once you have installed minas, import it at your maven project by including the following dependency to your pom.xml (edit the version if necessary):
 
@@ -32,3 +34,26 @@ Once you have installed minas, import it at your maven project by including the 
 ```
 
 Once minas is added to your project as a dependency, you can use the MINASTest.java test file as an example of how to instantiate the MINASController class and how to execute it.
+
+
+## Build the JAR
+
+To build without the dependencies: 
+
+```mvn clean install```
+
+To build with the dependencies included (except pcf-core dependency): 
+
+```mvn clean install assembly:single```
+
+### Observations about the commands to build the JAR
+
+1. We configured the build process in a way that, even if you choose to build with the dependencies included, the pcf-core dependency will not be included. 
+The reason is that the pcf-core dependency is already provided by the pcf-gui when the JAR is loaded through the interface.
+
+2. If you choose to build the project without the dependencies included, make sure to load all the JAR dependencies individually at the pcf-gui interface. 
+There is no need to load the pcf-core dependency though, since it is already provided by the pcf-gui.
+
+## Using it at pcf-gui
+
+Once you have the JAR, load it in classpath section of the pcf-gui, after that, the class MINASInterceptable should be listed at the interface.
