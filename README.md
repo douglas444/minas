@@ -19,7 +19,11 @@ This implementation is compatible with pcf's Interceptable (https://github.com/d
 
 ## Install
 
+From the project root, execute the following command line:
+
 ```mvn clean install```
+
+Once the process is finished, the project will be installed at the local maven repository.
 
 ## Using it as maven dependency
 
@@ -38,15 +42,18 @@ Once minas is added to your project as a dependency, you can use the MINASTest.j
 
 ## Build the JAR
 
-To build without the dependencies: 
+To build without the dependencies, execute the following command line:
 
 ```mvn clean install```
 
-To build with the dependencies included (except pcf-core dependency): 
+To build with the dependencies included, execute the following command line: 
 
 ```mvn clean install assembly:single```
 
-### Observations about the commands to build the JAR
+Once the process is finished, the JAR will be available at the ```target``` folder as 
+```minas.jar``` or ```minas-jar-with-dependencies.jar```.
+
+### Observations
 
 1. We configured the build process in a way that, even if you choose to build with the dependencies included, the pcf-core dependency will not be included. 
 The reason is that the pcf-core dependency is already provided by the pcf-gui when the JAR is loaded through the interface.
