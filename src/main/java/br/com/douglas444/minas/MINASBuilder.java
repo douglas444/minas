@@ -22,6 +22,7 @@ public class MINASBuilder implements StreamsProcessorBuilder {
     private final int heaterNumberOfClustersPerLabel;
     private final int noveltyDetectionNumberOfClusters;
     private final long randomGeneratorSeed;
+    private final boolean pcfTightIntegration;
     private Interceptor interceptor;
 
     public MINASBuilder(final String configurationFilePath)
@@ -65,6 +66,8 @@ public class MINASBuilder implements StreamsProcessorBuilder {
         this.randomGeneratorSeed = XMLUtils.getXMLNumericElementValue(document,
                 "seed");
 
+        this.pcfTightIntegration = false;
+
     }
 
     public MINASBuilder(final int temporaryMemoryMaxSize,
@@ -90,6 +93,7 @@ public class MINASBuilder implements StreamsProcessorBuilder {
         this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
+        this.pcfTightIntegration = false;
 
     }
 
@@ -104,6 +108,7 @@ public class MINASBuilder implements StreamsProcessorBuilder {
                         final int heaterNumberOfClustersPerLabel,
                         final int noveltyDetectionNumberOfClusters,
                         final long randomGeneratorSeed,
+                        final boolean pcfTightIntegration,
                         final Interceptor interceptor) {
 
         this.temporaryMemoryMaxSize = temporaryMemoryMaxSize;
@@ -117,6 +122,7 @@ public class MINASBuilder implements StreamsProcessorBuilder {
         this.heaterNumberOfClustersPerLabel = heaterNumberOfClustersPerLabel;
         this.noveltyDetectionNumberOfClusters = noveltyDetectionNumberOfClusters;
         this.randomGeneratorSeed = randomGeneratorSeed;
+        this.pcfTightIntegration = pcfTightIntegration;
         this.interceptor = interceptor;
 
     }
@@ -134,6 +140,7 @@ public class MINASBuilder implements StreamsProcessorBuilder {
                 this.heaterInitialBufferSize,
                 this.heaterNumberOfClustersPerLabel,
                 this.noveltyDetectionNumberOfClusters,
+                this.pcfTightIntegration,
                 this.randomGeneratorSeed);
 
         minas.setInterceptor(interceptor);

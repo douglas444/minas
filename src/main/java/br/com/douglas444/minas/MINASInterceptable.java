@@ -28,6 +28,7 @@ public class MINASInterceptable implements Interceptable, Configurable {
     private static final String RANDOM_GENERATOR_SEED = "Seed";
     private static final String DATASET_FILE_PATH = "Dataset CSV's (separated by ';')";
     private static final String LOG_INTERVAL = "Log interval";
+    private static final String PCF_TIGHT_INTEGRATION = "PCF tight integration {0,1}";
 
     private static final double DEFAULT_TEMPORARY_MEMORY_MAX_SIZE = 2000;
     private static final double DEFAULT_MINIMUM_CLUSTER_SIZE = 20;
@@ -41,6 +42,8 @@ public class MINASInterceptable implements Interceptable, Configurable {
     private static final double DEFAULT_NOVELTY_DETECTION_NUMBER_OF_CLUSTERS = 100;
     private static final double DEFAULT_RANDOM_GENERATOR_SEED = 0;
     private static final double DEFAULT_LOG_INTERVAL = 1000;
+    private static final double DEFAULT_PCF_TIGHT_INTEGRATION = 0;
+
 
     final private HashMap<String, Double> numericParameters;
     final private HashMap<String, String> nominalParameters;
@@ -60,6 +63,7 @@ public class MINASInterceptable implements Interceptable, Configurable {
         this.numericParameters.put(NOVELTY_DETECTION_NUMBER_OF_CLUSTERS, DEFAULT_NOVELTY_DETECTION_NUMBER_OF_CLUSTERS);
         this.numericParameters.put(HEATER_NUMBER_OF_CLUSTERS_PER_LABEL, DEFAULT_HEATER_NUMBER_OF_CLUSTERS_PER_LABEL);
         this.numericParameters.put(RANDOM_GENERATOR_SEED, DEFAULT_RANDOM_GENERATOR_SEED);
+        this.numericParameters.put(PCF_TIGHT_INTEGRATION, DEFAULT_PCF_TIGHT_INTEGRATION);
         this.numericParameters.put(LOG_INTERVAL, DEFAULT_LOG_INTERVAL);
 
         this.nominalParameters = new HashMap<>();
@@ -78,6 +82,15 @@ public class MINASInterceptable implements Interceptable, Configurable {
             throw new IllegalArgumentException();
         }
 
+        final boolean pcfTightIntegration;
+        if (this.numericParameters.get(PCF_TIGHT_INTEGRATION).equals(0d)) {
+            pcfTightIntegration = false;
+        } else if (this.numericParameters.get(PCF_TIGHT_INTEGRATION).equals(1d)) {
+            pcfTightIntegration = true;
+        } else {
+            throw new IllegalArgumentException();
+        }
+
         final MINASBuilder minasBuilder = new MINASBuilder(
                 this.numericParameters.get(TEMPORARY_MEMORY_MAX_SIZE).intValue(),
                 this.numericParameters.get(MINIMUM_CLUSTER_SIZE).intValue(),
@@ -90,6 +103,7 @@ public class MINASInterceptable implements Interceptable, Configurable {
                 this.numericParameters.get(HEATER_NUMBER_OF_CLUSTERS_PER_LABEL).intValue(),
                 this.numericParameters.get(NOVELTY_DETECTION_NUMBER_OF_CLUSTERS).intValue(),
                 this.numericParameters.get(RANDOM_GENERATOR_SEED).intValue(),
+                pcfTightIntegration,
                 interceptor);
 
         final MINASController controller = minasBuilder.build();
