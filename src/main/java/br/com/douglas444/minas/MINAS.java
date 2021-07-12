@@ -128,7 +128,9 @@ public class MINAS {
                             this.decisionModel.getMicroClusters(),
                             this.sleepMemory.getMicroClusters());
 
-                    responseContext = this.interceptor.intercept(context);
+                    if (context.getKnownLabels().size() > 1) {
+                        responseContext = this.interceptor.intercept(context);
+                    }
                 }
 
                 if (responseContext != null && this.pcfTightIntegration) {
@@ -156,7 +158,9 @@ public class MINAS {
                                 this.decisionModel.getMicroClusters(),
                                 this.sleepMemory.getMicroClusters());
 
-                        responseContext = this.interceptor.intercept(context);
+                        if (context.getKnownLabels().size() > 1) {
+                            responseContext = this.interceptor.intercept(context);
+                        }
                     }
 
                     if (responseContext != null && this.pcfTightIntegration) {
@@ -183,7 +187,9 @@ public class MINAS {
                                 this.decisionModel.getMicroClusters(),
                                 this.sleepMemory.getMicroClusters());
 
-                        responseContext = this.interceptor.intercept(context);
+                        if (context.getKnownLabels().size() > 1) {
+                            responseContext = this.interceptor.intercept(context);
+                        }
                     }
 
                     if (responseContext != null && this.pcfTightIntegration) {
