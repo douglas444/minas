@@ -43,7 +43,7 @@ to your project's pom.xml file (edit the version if necessary):
 ```
 
 For an example of how to use *minas* in your code, check out the file 
-```src/test/java/br/com/douglas444/minas/MINASTest.java```.
+[```src/test/java/br/com/douglas444/minas/MINASTest.java```](src/test/java/br/com/douglas444/minas/MINASTest.java).
 
 ## How to use *minas* with *pcf-gui*
 
