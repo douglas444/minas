@@ -1,3 +1,5 @@
+This is a custom implementation of MINAS, intended to be used alongise with PCF (https://github.com/douglas444/pcf). If you don't need to use the PCF and prefer to use a MINAS' implementation more close to the original material, check out this repository: https://github.com/douglas444/minas-reference-implementation .
+
 # minas
 
 MINAS (MultI-class learNing Algorithm for data Streams)
